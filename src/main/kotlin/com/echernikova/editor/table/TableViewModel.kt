@@ -12,16 +12,22 @@ class TableViewModel(
 ): DefaultTableModel(initialData, getColumns()) {
     private var isLoading = false
     private val lock = Any()
+    private var isUpdating = false
     val tableData = TableData(dataVector, evaluator) { row, column ->
         fireTableCellUpdated(row, column)
     }
 
     init {
         addTableModelListener { event ->
-            if (event.lastRow < 0) return@addTableModelListener
+            if (event.lastRow < 0 || event.column < 0) return@addTableModelListener
             if (event.lastRow >= rowCount || event.column >= columnCount) return@addTableModelListener
-            tableData.getCell(event.lastRow, event.column)?.rawValue =
-                getValueAt(event.lastRow, event.column)?.toString()
+
+            if (!isUpdating) {
+                isUpdating = true
+                val cellValue = getValueAt(event.lastRow, event.column)?.toString()
+                tableData.setValueToCell(event.lastRow, event.column, cellValue)
+                isUpdating = false
+            }
         }
     }
 
@@ -46,15 +52,6 @@ class TableViewModel(
         }
     }
 
-    fun replaceData(newData: List<Array<Any?>>) {
-        synchronized(lock) {
-            rowCount = 0
-            for (row in newData) {
-                addRow(row)
-            }
-        }
-    }
-
     private fun getDataForNewPage(): List<Array<Any?>> {
         val data = mutableListOf<Array<Any?>>()
         val rowsBefore = rowCount - 1
@@ -66,7 +63,7 @@ class TableViewModel(
 
     companion object {
         private fun getColumns(): Array<Char> {
-            return Array(22) { if (it == 0) ' ' else 'Z' + 1 - it }
+            return Array(27) { if (it == 0) ' ' else 'A' + it - 1 }
         }
     }
 }

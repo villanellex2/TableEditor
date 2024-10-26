@@ -19,7 +19,6 @@ class FileOpeningFrameViewModel {
         val fileChooser = TableFileChooser()
         if (fileChooser.showSaveDialog(button) == JFileChooser.APPROVE_OPTION) {
             val file = fileChooser.selectedFile
-            LastOpenFile.setPath(file.path)
 
             if (file.exists()) {
                 //todo: showError
@@ -36,6 +35,7 @@ class FileOpeningFrameViewModel {
         val fileChooser = TableFileChooser()
         if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
             val file = fileChooser.selectedFile
+            LastOpenFile.setPath(file.path)
 
             if (file.exists()) {
                 if (!openExistingTable(file, disposeFrameCallback)) {
@@ -68,7 +68,7 @@ class FileOpeningFrameViewModel {
     ) {
         val editorViewModel: EditorViewModel = getKoin().get { parametersOf(file, null) }
 
-        EditorFrame(editorViewModel)
+        EditorFrame(editorViewModel).isVisible = true
         disposeFrameCallback.invoke()
     }
 
@@ -80,7 +80,6 @@ class FileOpeningFrameViewModel {
         val data = fileHelper.readTable(file.path) ?: return false
 
         val editorViewModel: EditorViewModel = getKoin().get { parametersOf(file, data.toTypedArray()) }
-        editorViewModel.tableViewModel.replaceData(data)
 
         EditorFrame(editorViewModel).isVisible = true
         disposeFrameCallback.invoke()

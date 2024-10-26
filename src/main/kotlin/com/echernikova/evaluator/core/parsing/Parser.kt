@@ -20,6 +20,7 @@ object Parser {
 
     private fun startParsing(state: ParsingState): Operator = parseBinary(state)
 
+    //todo: игнорируется порядок вычисления всяких +/*
     private fun parseBinary(state: ParsingState): Operator {
         var left = parseUnary(state)
         while (!state.isAtEnd() && state.current() is Token.Operator.Binary) {

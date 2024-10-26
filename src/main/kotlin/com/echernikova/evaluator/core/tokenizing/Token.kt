@@ -5,15 +5,15 @@ sealed interface Token {
         data class Double(val value: kotlin.Double) : Literal
         data class Int(val value: kotlin.Int) : Literal
         data class Str(val value: String) : Literal
-        // todo: add Bool
+        data class Bool(val value: Boolean) : Literal
     }
 
     sealed interface Cell : Token {
         data class CellLink(val name: String) : Cell
-        data object CellDelimiter: Cell
+        data object CellDelimiter : Cell
     }
 
-    sealed interface Operator: Token {
+    sealed interface Operator : Token {
         enum class Unary(val symbol: String) : Operator {
             Plus("+"),
             Minus("-");
@@ -36,12 +36,12 @@ sealed interface Token {
         }
     }
 
-    enum class Bracket(val symbol: String): Token {
+    enum class Bracket(val symbol: String) : Token {
         LeftRound("("),
         RightRound(")")
     }
 
     data class Function(val name: String) : Token {
-        object ArgumentDelimiter: Token
+        data object ArgumentDelimiter : Token
     }
 }

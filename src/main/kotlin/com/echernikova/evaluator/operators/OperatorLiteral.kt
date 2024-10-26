@@ -12,6 +12,7 @@ interface OperatorLiteral: Operator {
                 is Token.Literal.Int -> OperatorLiteralInt(token)
                 is Token.Literal.Str -> OperatorLiteralString(token)
                 is Token.Literal.Double -> OperatorLiteralDouble(token)
+                is Token.Literal.Bool -> OperatorLiteralBoolean(token)
             }
         }
     }
@@ -32,5 +33,11 @@ class OperatorLiteralString(private val token: Token.Literal.Str): OperatorLiter
 class OperatorLiteralDouble(private val token: Token.Literal.Double): OperatorLiteral {
     override fun evaluate(context: Context): EvaluationResult {
         return EvaluationResult(token.value, EvaluationResultType.Double)
+    }
+}
+
+class OperatorLiteralBoolean(private val token: Token.Literal.Bool): OperatorLiteral {
+    override fun evaluate(context: Context): EvaluationResult {
+        return EvaluationResult(token.value, EvaluationResultType.Boolean)
     }
 }

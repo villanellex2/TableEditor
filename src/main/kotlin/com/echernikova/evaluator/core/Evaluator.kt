@@ -34,7 +34,7 @@ class Evaluator (
         }
     }
 
-    fun tryToParseAsLiteral(str: String): EvaluationResult {
+    private fun tryToParseAsLiteral(str: String): EvaluationResult {
         str.toIntOrNull()?.let {
             return EvaluationResult(
                 evaluatedValue = it,

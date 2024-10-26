@@ -5,8 +5,8 @@ import com.echernikova.evaluator.core.Evaluator
 
 class TableCell(
     initialValue: String?,
-    private val row: Int,
-    private val column: Int,
+    val row: Int,
+    val column: Int,
     private val tableData: TableData,
     private val evaluator: Evaluator,
     private val cellExpiredCallback: (Int, Int) -> Unit,
@@ -17,48 +17,49 @@ class TableCell(
 
     var rawValue: String? = initialValue
         set(value) {
-            if (field == value) return
-            field = value
-            evaluate()
+            if (field != value) {
+                field = value
+                evaluate()
+            }
         }
-    var evaluating: Boolean = false
-        private set
-    var evaluationResult: EvaluationResult? = rawValue?.let { evaluate() }
+
+    private var evaluating = false
+    var evaluationResult: EvaluationResult? = null
 
     init {
         evaluate()
     }
 
-    private fun addOnCellChangedListener(listener: OnCellChanged) {
-        onCellChangedListeners.add(listener)
-    }
-
-    private fun removeOnCellChangedListener(listener: OnCellChanged) {
-        onCellChangedListeners.remove(listener)
-    }
-
-    private fun evaluate(): EvaluationResult? {
-        val value = rawValue ?: ""
-        if (rawValue == null) {
-            evaluationResult = null
-            return null
+    fun evaluate() {
+        val value = rawValue ?: return clearResult()
+        if (evaluating) {
+            evaluationResult = EvaluationResult.buildErrorResult(
+                errorMessage = "Cyclic dependenciesю",
+                dependencies = evaluationResult?.cellDependencies ?: emptyList()
+            )
+            return
         }
 
         evaluating = true
-        val evaluationResult = evaluator.evaluate(value)
+        evaluationResult = evaluator.evaluate(value)
 
-        //todo: должны ли они сами триггерить свои вычисления и разруливать зависимости?
-        dependencies.forEach { cell -> cell.removeOnCellChangedListener(onDependenciesUpdatedCallback) }
-        evaluationResult.cellDependencies.forEach { (row, column) ->
-            tableData.getCell(row, column)?.also {
-                it.addOnCellChangedListener(onDependenciesUpdatedCallback)
+        dependencies.forEach { it.onCellChangedListeners.remove(onDependenciesUpdatedCallback) }
+        dependencies.clear()
+
+        evaluationResult?.cellDependencies?.forEach { (row, column) ->
+            tableData.getOrCreateCell(row, column)?.also {
+                dependencies.add(it)
+                it.onCellChangedListeners.add(onDependenciesUpdatedCallback)
             }
         }
 
-        cellExpiredCallback.invoke(row, column)
+        cellExpiredCallback(row, column)
         onCellChangedListeners.forEach { it.onCellChanged() }
-        this.evaluationResult = evaluationResult
-        return evaluationResult
+        evaluating = false
+    }
+
+    private fun clearResult() {
+        evaluationResult = null
     }
 
     fun interface OnCellChanged {

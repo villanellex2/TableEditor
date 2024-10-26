@@ -1,5 +1,6 @@
 package com.echernikova.evaluator.core.tokenizing
 
+import com.echernikova.evaluator.core.EvaluationException
 import com.echernikova.evaluator.core.TokenizerException
 import com.echernikova.evaluator.core.TokenizerState
 
@@ -70,11 +71,17 @@ object Tokenizer {
             state.forward()
         }
         if (state.isAtEnd()) {
-            throw TokenizerException("Unterminated string literal")
+            throw TokenizerException("Unterminated string '${state.part(start-1, state.index)}'")
         }
         val stringValue = state.part(start, state.index)
         state.tokens.add(Token.Literal.Str(stringValue))
         state.forward()
+    }
+
+    private fun isUnaryOperator(tokens: List<Token>): Boolean {
+        if (tokens.isEmpty()) return true
+        val last = tokens.last()
+        return last is Token.Operator || last == Token.Bracket.LeftRound || last is Token.Function.ArgumentDelimiter
     }
 
     private fun addOperatorToken(
@@ -119,20 +126,26 @@ object Tokenizer {
         val start = state.index
         do {
             state.forward()
-        } while (state.current().isAlphabetic() || state.current().isDigit())
+        } while (!state.current().isIdentifierEnd())
 
         val identifier = state.part(start, state.index)
+        val boolean = identifier.toBooleanStrictOrNull()
 
-        if (state.current() == '(') {
-            state.tokens.add(Token.Function(identifier))
-        } else {
-            state.tokens.add(Token.Cell.CellLink(identifier))
+        when {
+            boolean != null -> state.tokens.add(Token.Literal.Bool(boolean))
+            // correctness of function will be checked on function evaluation
+            state.current() == '(' -> state.tokens.add(Token.Function(identifier))
+            isCellLinkCorrect(identifier) -> state.tokens.add(Token.Cell.CellLink(identifier))
+            else ->  throw EvaluationException("Incorrect cell link $identifier")
         }
     }
 
-    private fun isUnaryOperator(tokens: List<Token>): Boolean {
-        if (tokens.isEmpty()) return true
-        val last = tokens.last()
-        return last is Token.Operator.Unary || last == Token.Bracket.LeftRound || last is Token.Function.ArgumentDelimiter
+    private fun isCellLinkCorrect(str: String): Boolean {
+        if (str.length < 2) return false
+        val firstSymbol = str[0]
+        if (firstSymbol < 'A' || firstSymbol > 'Z') {
+            return false
+        }
+        return str.substring(1, str.length).toIntOrNull() != null
     }
 }
