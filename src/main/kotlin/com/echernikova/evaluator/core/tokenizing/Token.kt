@@ -19,20 +19,20 @@ sealed interface Token {
             Minus("-");
         }
 
-        enum class Binary(val symbol: String) : Operator {
-            Plus("*"),
-            Minus("-"),
-            Multiplication("*"),
-            Division("/"),
-            Modulo("%"),
-            Power("^"),
-            And("&&"),
-            Or("||"),
-            Greater(">"),
-            GreaterOrEqual(">="),
-            Less("<"),
-            LessOrEqual("<="),
-            Equal("=");
+        enum class Binary(val symbol: String, val priority: Int) : Operator {
+            Or("||", 1),
+            And("&&", 2),
+            Equal("=", 3),
+            Greater(">", 4),
+            GreaterOrEqual(">=", 4),
+            Less("<", 4),
+            LessOrEqual("<=", 4),
+            Plus("*", 5),
+            Minus("-", 5),
+            Multiplication("*", 6),
+            Division("/", 6),
+            Modulo("%", 6),
+            Power("^", 7);
         }
     }
 

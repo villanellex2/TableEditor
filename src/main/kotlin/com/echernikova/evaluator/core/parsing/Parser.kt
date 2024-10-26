@@ -20,16 +20,26 @@ object Parser {
 
     private fun startParsing(state: ParsingState): Operator = parseBinary(state)
 
-    //todo: игнорируется порядок вычисления всяких +/*
-    private fun parseBinary(state: ParsingState): Operator {
+    private fun parseBinary(
+        state: ParsingState,
+        priority: Int = 0
+    ): Operator {
         var left = parseUnary(state)
+
         while (!state.isAtEnd() && state.current() is Token.Operator.Binary) {
             val currToken = state.current() as Token.Operator.Binary
+            val currPriority = currToken.priority
+
+            if (currPriority < priority) break
+
             state.forward()
-            left = OperatorBinary(currToken, left, parseUnary(state))
+            val right = parseBinary(state, currPriority)
+            left = OperatorBinary(currToken, left, right)
         }
+
         return left
     }
+
 
     private fun parseUnary(state: ParsingState): Operator {
         val currToken = state.current()
@@ -43,23 +53,26 @@ object Parser {
     private fun parseRest(state: ParsingState): Operator {
         if (state.isAtEnd()) throw EvaluationException("Expression expected")
 
-        val token = state.current()
-        return when (token) {
+        return when (val token = state.current()) {
             is Token.Literal -> {
                 state.forward()
                 OperatorLiteral.getFor(token)
             }
             is Token.Cell.CellLink -> parseCellLink(token, state)
             is Token.Function -> parseFunction(token, state)
-            Token.Bracket.LeftRound -> {
-                val result = startParsing(state)
-                if (state.next() != Token.Bracket.RightRound) {
-                    throw EvaluationException("')' expected after expression")
-                }
-                result
-            }
+            Token.Bracket.LeftRound -> parseBracket(state)
             else -> throw EvaluationException("Expression expected")
         }
+    }
+
+    private fun parseBracket(state: ParsingState): Operator {
+        state.forward()
+        val result = startParsing(state)
+        if (state.current() != Token.Bracket.RightRound) {
+            throw EvaluationException("')' expected after expression")
+        }
+        state.forward()
+        return result
     }
 
     private fun parseCellLink(cell: Token.Cell.CellLink, state: ParsingState): Operator {
