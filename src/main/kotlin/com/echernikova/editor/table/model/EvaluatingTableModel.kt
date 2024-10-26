@@ -18,38 +18,34 @@ open class EvaluatingTableModel(
     private val lock = Any()
 
     init {
-        setColumnIdentifiers(getColumns())
         initializeDataVector(initialData)
     }
 
-    private fun initializeDataVector(initialData: Array<Array<String?>>?) {
-        initialData?.forEachIndexed { row, array ->
-            array.forEachIndexed { column, value ->
-                val cellPointer = CellPointer(row, column)
-                dataVector[row][column] = createTableCell(cellPointer, value)
-            }
-        }
-
-        scope.launch {
-            synchronized(lock) {
-                dataVector.toList().forEach { row ->
-                    row.forEach { (it as? TableCell)?.getEvaluationResult() }
-                }
-            }
-        }
+    fun initColumnIdentifiers() {
+        setColumnIdentifiers(getColumns())
     }
 
     fun getValueAt(pointer: CellPointer): TableCell? {
         synchronized(lock) {
             while (pointer.row >= rowCount) loadNextPage()
-            return getValueAt(pointer.row, pointer.column) as? TableCell
+            return getValueAt(pointer.row, pointer.column)
+        }
+    }
+
+    override fun setValueAt(value: Any?, row: Int, column: Int) {
+        synchronized(lock) {
+            while (column >= columnCount) loadNextPage()
+            value ?: return
+            setValueToCell(CellPointer(row, column), value)
         }
     }
 
     fun setValueAt(value: Any?, pointer: CellPointer) {
-        while (pointer.column >= columnCount) loadNextPage()
-        value ?: return
-        setValueToCell(pointer, value)
+        synchronized(lock) {
+            while (pointer.column >= columnCount) loadNextPage()
+            value ?: return
+            setValueToCell(pointer, value)
+        }
     }
 
     override fun getValueAt(row: Int, column: Int): TableCell? {
@@ -59,39 +55,33 @@ open class EvaluatingTableModel(
         }
     }
 
-
-    override fun setValueAt(value: Any?, row: Int, column: Int) {
-        while (column >= columnCount) loadNextPage()
-        value ?: return
-        setValueToCell(CellPointer(row, column), value)
-    }
-
     override fun isCellEditable(row: Int, column: Int): Boolean {
         return column != 0
     }
 
-    private fun addNewRow(row: Int, values: Array<Any?>) {
+    override fun addRow(rowData: Array<Any?>) {
+        addNewRow(rowCount, rowData)
+    }
+
+    fun loadNextPage() {
         synchronized(lock) {
-            val newRow = Vector<Any?>(columnCount)
-            values.forEachIndexed { i, value ->
-                if (i == 0) {
-                    newRow.add(null)
-                } else {
-                    newRow.add(TableCell(value.toString(), CellPointer(row, i), this, evaluator) { cell ->
-                        dependenciesGraph.updateDependencies(cell)
-                        fireTableCellUpdated(cell.pointer.row, cell.pointer.column)
-                    })
-                }
+            getDataForNewPage().forEach {
+                addRow(it)
             }
-            for (i in newRow.size until columnCount) {
-                newRow.add(null)
-            }
-            dataVector.add(newRow)
         }
     }
 
-    override fun addRow(rowData: Array<Any?>) {
-        addNewRow(rowCount, rowData)
+    private fun addNewRow(row: Int, values: Array<Any?>) {
+        val newRow = Vector<Any?>(columnCount)
+        values.forEachIndexed { i, value ->
+            if (i == 0) newRow.add(null) else newRow.add(createTableCell(CellPointer(row, i), value.toString()))
+        }
+        for (i in newRow.size until columnCount) {
+            newRow.add(null)
+        }
+        synchronized(lock) {
+            dataVector.add(newRow)
+        }
     }
 
     private fun getDataForNewPage(): List<Array<Any?>> {
@@ -103,10 +93,20 @@ open class EvaluatingTableModel(
         return data
     }
 
-    fun loadNextPage() {
-        synchronized(lock) {
-            getDataForNewPage().forEach {
-                addRow(it)
+    private fun initializeDataVector(initialData: Array<Array<String?>>?) {
+        val createdCells = mutableListOf<TableCell>()
+        initialData?.forEachIndexed { row, array ->
+            array.forEachIndexed { column, value ->
+                val cellPointer = CellPointer(row, column)
+                dataVector[row][column] = createTableCell(cellPointer, value).also {
+                    createdCells.add(it)
+                }
+            }
+        }
+
+        scope.launch {
+            synchronized(lock) {
+                createdCells.forEach { it.getEvaluationResult() }
             }
         }
     }
@@ -128,8 +128,8 @@ open class EvaluatingTableModel(
                 dataVector[pointer.row][pointer.column] = null
             } else {
                 cell.rawValue = newValue
-                evaluateCellDependencies(cell)
             }
+            evaluateCellDependencies(cell)
         }
     }
 

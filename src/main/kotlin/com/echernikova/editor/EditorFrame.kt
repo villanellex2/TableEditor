@@ -21,7 +21,7 @@ private const val MINI_CELL_WIDTH = 60
 class EditorFrame(
     private val frameViewModel: EditorViewModel,
 ) : JFrame() {
-    private val table = TableView(frameViewModel.tableViewModel)
+    private val table = TableView(frameViewModel.tableModel)
     private val scrollPane = JScrollPane(table)
     private val statusText = JLabel()
 
@@ -57,7 +57,7 @@ class EditorFrame(
         horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
         verticalScrollBar.addAdjustmentListener {
             if (isScrolledToBottom()) {
-                frameViewModel.tableViewModel.loadNextPage()
+                frameViewModel.tableModel.loadNextPage()
             }
         }
         val constraints = GridBagConstraints().apply {
@@ -78,14 +78,15 @@ class EditorFrame(
         zeroColumn.preferredWidth = MINI_CELL_WIDTH
         zeroColumn.maxWidth = MINI_CELL_WIDTH + 20
 
+        frameViewModel.tableModel.initColumnIdentifiers()
+        tableHeader.defaultRenderer = HeaderRenderer()
+
         for (i in 1 until table.columnCount) {
             val column = columnModel.getColumn(i)
 
             column.minWidth = DEFAULT_CELL_MIN_WIDTH
             column.preferredWidth = DEFAULT_CELL_WIDTH
         }
-
-        tableHeader.defaultRenderer = HeaderRenderer()
     }
 
     private fun JLabel.setupStatusText() {

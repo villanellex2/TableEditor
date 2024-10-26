@@ -21,7 +21,7 @@ class EditorViewModel(
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val evaluator: Evaluator by inject(Evaluator::class.java)
-    val tableViewModel: EvaluatingTableModel = EvaluatingTableModel(initialData, evaluator, scope)
+    val tableModel: EvaluatingTableModel = EvaluatingTableModel(initialData, evaluator, scope)
     val editedFileName: String = file.path.substringAfterLast('/')
 
     fun onSaveClicked(onStatusUpdateListener: StatusUpdateListener) {
@@ -33,7 +33,7 @@ class EditorViewModel(
 
         scope.launch {
             val saveResult = extension.fileHelper.writeTable(
-                tableViewModel.getDataAsList(),
+                tableModel.getDataAsList(),
                 file.path
             )
 

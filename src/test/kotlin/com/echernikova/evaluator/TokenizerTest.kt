@@ -11,13 +11,13 @@ import kotlin.test.assertFails
 
 class TokenizerTest {
 
-    @ParameterizedTest(name = "successfully: {0}")
+    @ParameterizedTest(name = "successfully parsed: {0}")
     @MethodSource("correct")
     fun `tokenizer correctly works with correct cases`(input: String, expected: Array<Token>) {
         runComparison(input, expected)
     }
 
-    @ParameterizedTest(name = "failed: {0}")
+    @ParameterizedTest(name = "parsing failed: {0}, with error: {1}")
     @MethodSource("incorrect")
     fun `tokenizer fail on incorrect expressions`(input: String, errorMessage: String) {
         runComparisonForFail(input, errorMessage)
