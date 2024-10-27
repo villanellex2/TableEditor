@@ -3,148 +3,108 @@ package com.echernikova.evaluator.core
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.evaluator.operators.OperatorCellRange
 
-sealed class EvaluationResult<T> {
-    abstract val evaluatedValue: T?
-    abstract val cellDependencies: List<CellPointer>
+sealed class EvaluationResult<T : Any?>(
+    open val evaluatedValue: T,
+    open val cellDependencies: List<CellPointer>
+) {
+    object Empty : EvaluationResult<Nothing?>(null, emptyList())
 
-    abstract fun copyWith(newValue: T?, newDependencies: List<CellPointer>): EvaluationResult<T>
-    abstract fun toIntResult(): IntegerEvaluationResult?
-    abstract fun toDoubleResult(): DoubleEvaluationResult?
-    abstract fun toStringResult(): StringEvaluationResult?
-    abstract fun toBooleanResult(): BooleanEvaluationResult?
+    fun tryConvertToBoolean(): EvaluationResult<Boolean>? {
+        return when (evaluatedValue) {
+            is Boolean -> this as EvaluationResult<Boolean>
+
+            Empty -> {
+                DataEvaluationResult(
+                    evaluatedValue = false,
+                    cellDependencies = cellDependencies
+                )
+            }
+
+            is Int -> {
+                DataEvaluationResult(
+                    evaluatedValue = (evaluatedValue as Int == 0),
+                    cellDependencies = cellDependencies
+                )
+            }
+
+            else -> null
+        }
+    }
+
+    fun tryConvertToInt(): EvaluationResult<Int>? {
+        return when (evaluatedValue) {
+            is Int -> this as EvaluationResult<Int>
+
+            Empty -> {
+                DataEvaluationResult(
+                    evaluatedValue = 0,
+                    cellDependencies = cellDependencies
+                )
+            }
+
+            else -> null
+        }
+    }
+
+    fun tryConvertToDouble(): EvaluationResult<Double>? {
+        return when (evaluatedValue) {
+            is Double -> this as EvaluationResult<Double>
+
+            is Int -> DataEvaluationResult(
+                evaluatedValue = (evaluatedValue as Int).toDouble(),
+                cellDependencies = cellDependencies
+            )
+
+            Empty -> {
+                DataEvaluationResult(
+                    evaluatedValue = 0.0,
+                    cellDependencies = cellDependencies
+                )
+            }
+
+            else -> null
+        }
+    }
+
+    fun tryConvertToString(): EvaluationResult<String>? {
+        return when (evaluatedValue) {
+            is String -> return this as EvaluationResult<String>
+
+            Empty -> {
+                DataEvaluationResult(
+                    evaluatedValue = "",
+                    cellDependencies = cellDependencies
+                )
+            }
+
+            else -> null
+        }
+    }
 }
 
+/**
+ * Class for final values, which can be drawn on table.
+ */
+sealed class FinalEvaluationResult<T>(
+    override val evaluatedValue: T,
+    override val cellDependencies: List<CellPointer>
+) : EvaluationResult<T>(evaluatedValue, cellDependencies)
 
+data class DataEvaluationResult<T>(
+    override val evaluatedValue: T,
+    override val cellDependencies: List<CellPointer>
+) : FinalEvaluationResult<T>(evaluatedValue, cellDependencies)
 
-sealed class NumberEvaluationResult<T: Number>: EvaluationResult<T>()
-
-class IntegerEvaluationResult(
-    override val evaluatedValue: Int,
-    override val cellDependencies: List<CellPointer>,
-) : NumberEvaluationResult<Int>() {
-    override fun copyWith(newValue: Int?, newDependencies: List<CellPointer>) =
-        IntegerEvaluationResult(
-            newValue ?: evaluatedValue,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult = this
-    override fun toDoubleResult(): DoubleEvaluationResult = DoubleEvaluationResult(
-        evaluatedValue = evaluatedValue.toDouble(),
-        cellDependencies = cellDependencies
-    )
-
-    override fun toStringResult(): StringEvaluationResult? = null
-    override fun toBooleanResult(): BooleanEvaluationResult? = null
-}
-
-class DoubleEvaluationResult(
-    override val evaluatedValue: Double,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<Double>() {
-    override fun copyWith(newValue: Double?, newDependencies: List<CellPointer>) =
-        DoubleEvaluationResult(
-            newValue ?: evaluatedValue,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult? = null
-    override fun toDoubleResult(): DoubleEvaluationResult = this
-    override fun toStringResult(): StringEvaluationResult? = null
-    override fun toBooleanResult(): BooleanEvaluationResult? = null
-}
-
-class StringEvaluationResult(
-    override val evaluatedValue: String,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<String>() {
-    override fun copyWith(newValue: String?, newDependencies: List<CellPointer>) =
-        StringEvaluationResult(
-            newValue ?: evaluatedValue,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult? = null
-    override fun toDoubleResult(): DoubleEvaluationResult? = null
-    override fun toStringResult(): StringEvaluationResult? = this
-    override fun toBooleanResult(): BooleanEvaluationResult? = null
-}
-
-class BooleanEvaluationResult(
-    override val evaluatedValue: Boolean,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<Boolean>() {
-    override fun copyWith(newValue: Boolean?, newDependencies: List<CellPointer>) =
-        BooleanEvaluationResult(
-            newValue ?: evaluatedValue,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult? = null
-    override fun toDoubleResult(): DoubleEvaluationResult? = null
-    override fun toStringResult(): StringEvaluationResult? = null
-    override fun toBooleanResult(): BooleanEvaluationResult = this
-}
-
-class CellRangeEvaluationResult(
-    override val evaluatedValue: OperatorCellRange,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<OperatorCellRange>() {
-    override fun copyWith(newValue: OperatorCellRange?, newDependencies: List<CellPointer>) =
-        CellRangeEvaluationResult(
-            newValue ?: evaluatedValue,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult? = null
-    override fun toDoubleResult(): DoubleEvaluationResult? = null
-    override fun toStringResult(): StringEvaluationResult? = null
-    override fun toBooleanResult(): BooleanEvaluationResult? = null
-}
-
-class EmptyCellEvaluationResult(
-    override val evaluatedValue: Any? = null,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<Any?>() {
-    override fun copyWith(newValue: Any?, newDependencies: List<CellPointer>) =
-        EmptyCellEvaluationResult(
-            null,
-            cellDependencies + newDependencies
-        )
-
-    override fun toIntResult(): IntegerEvaluationResult = IntegerEvaluationResult(
-        evaluatedValue = 1,
-        cellDependencies = cellDependencies
-    )
-
-    override fun toDoubleResult(): DoubleEvaluationResult = DoubleEvaluationResult(
-        evaluatedValue = 1.0,
-        cellDependencies = cellDependencies
-    )
-
-    override fun toStringResult(): StringEvaluationResult = StringEvaluationResult(
-        evaluatedValue = "",
-        cellDependencies = cellDependencies
-    )
-
-    override fun toBooleanResult(): BooleanEvaluationResult = BooleanEvaluationResult(
-        evaluatedValue = false,
-        cellDependencies = cellDependencies
-    )
-}
-
-class ErrorEvaluationResult(
+data class ErrorEvaluationResult(
     override val evaluatedValue: String?,
-    override val cellDependencies: List<CellPointer>,
-) : EvaluationResult<String?>() {
-    override fun copyWith(newValue: String?, newDependencies: List<CellPointer>) =
-        ErrorEvaluationResult(
-            evaluatedValue ?: newValue,
-            cellDependencies + newDependencies
-        )
+    override val cellDependencies: List<CellPointer>
+) : FinalEvaluationResult<String?>(evaluatedValue, cellDependencies)
 
-    override fun toIntResult(): IntegerEvaluationResult? = null
-    override fun toDoubleResult(): DoubleEvaluationResult? = null
-    override fun toStringResult(): StringEvaluationResult? = null
-    override fun toBooleanResult(): BooleanEvaluationResult? = null
-}
+/**
+ * The only not final class, if evaluation ended with cell range, we can't show it on table correctly.
+ */
+data class CellRangeEvaluationResult(
+    override val evaluatedValue: OperatorCellRange,
+    override val cellDependencies: List<CellPointer>
+) : EvaluationResult<OperatorCellRange>(evaluatedValue, cellDependencies)
+

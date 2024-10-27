@@ -3,6 +3,7 @@ package com.echernikova.editor.table.model
 import com.echernikova.evaluator.core.ErrorEvaluationResult
 import com.echernikova.evaluator.core.EvaluationResult
 import com.echernikova.evaluator.core.Evaluator
+import com.echernikova.evaluator.core.FinalEvaluationResult
 
 class TableCell(
     initialValue: String?,
@@ -25,7 +26,7 @@ class TableCell(
 
     var evaluating = false
     private set
-    var evaluationResult: EvaluationResult<*>? = null
+    var evaluationResult: FinalEvaluationResult<*>? = null
 
     fun evaluate() {
         val value = rawValue ?: return clearResult()

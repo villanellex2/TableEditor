@@ -2,10 +2,11 @@ package com.echernikova.evaluator.core.tokenizing
 
 sealed interface Token {
     sealed interface Literal : Token {
-        data class Double(val value: kotlin.Double) : Literal
-        data class Int(val value: kotlin.Int) : Literal
-        data class Str(val value: String) : Literal
-        data class Bool(val value: Boolean) : Literal
+        val value: Any
+        data class Double(override val value: kotlin.Double) : Literal
+        data class Int(override val value: kotlin.Int) : Literal
+        data class Str(override val value: String) : Literal
+        data class Bool(override val value: Boolean) : Literal
     }
 
     sealed interface Cell : Token {

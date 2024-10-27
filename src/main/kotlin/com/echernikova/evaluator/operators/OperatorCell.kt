@@ -17,6 +17,9 @@ interface OperatorCell: Operator {
     }
 }
 
+/**
+ * Evaluation of other cell value, such as A2, C12 etc.
+ */
 class OperatorCellLink(
     private val link: Token.Cell.CellLink,
 ): OperatorCell {
@@ -28,8 +31,8 @@ class OperatorCellLink(
         }
 
         val link = context.table.getCell(cellPosition) ?: run {
-            return EmptyCellEvaluationResult(
-                evaluatedValue = null,
+            return DataEvaluationResult(
+                evaluatedValue = EvaluationResult.Empty,
                 cellDependencies = emptyList()
             )
         }
@@ -41,16 +44,21 @@ class OperatorCellLink(
             )
         }
 
-        return link.evaluationResult?.copyWith(
-            newValue = null,
-            newDependencies = listOf(cellPosition)
-        ) ?: ErrorEvaluationResult(
+        return link.evaluationResult?.let {
+            DataEvaluationResult(
+                it.evaluatedValue,
+                it.cellDependencies + listOf(cellPosition)
+            )
+        } ?: ErrorEvaluationResult(
             evaluatedValue = "Cell with link $cellPosition is not evaluated.",
             cellDependencies = listOf(cellPosition)
         )
     }
 }
 
+/**
+ * Cell range is not final type. We can only pass it to some function as an argument.
+ */
 class OperatorCellRange(
     private val from: Token.Cell.CellLink,
     private val to: Token.Cell.CellLink,

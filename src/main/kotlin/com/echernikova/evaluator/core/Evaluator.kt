@@ -8,9 +8,9 @@ import com.echernikova.evaluator.functions.Function
 class Evaluator (
     private val declaredFunctions: Map<String, Function>,
 ) {
-    fun evaluate(value: String, tableData: TableData): EvaluationResult<*> {
-        if (value.isEmpty()) return EmptyCellEvaluationResult(
-            evaluatedValue = null,
+    fun evaluate(value: String, tableData: TableData): FinalEvaluationResult<*> {
+        if (value.isEmpty()) return DataEvaluationResult(
+            evaluatedValue = EvaluationResult.Empty,
             cellDependencies = emptyList()
         )
 
@@ -28,7 +28,14 @@ class Evaluator (
                 )
             }
 
-            return parsingResult.getOrNull()?.evaluate(context) ?: ErrorEvaluationResult(
+            val result = parsingResult.getOrNull()?.evaluate(context)
+            if (result !is FinalEvaluationResult) {
+                return ErrorEvaluationResult(
+                    evaluatedValue = "Can't display cell range.",
+                    cellDependencies = emptyList()
+                )
+            }
+            return result ?: ErrorEvaluationResult(
                 evaluatedValue = "",
                 cellDependencies = emptyList()
             )
@@ -37,29 +44,29 @@ class Evaluator (
         }
     }
 
-    private fun tryToParseAsLiteral(str: String): EvaluationResult<*> {
+    private fun tryToParseAsLiteral(str: String): FinalEvaluationResult<*> {
         str.toIntOrNull()?.let {
-            return IntegerEvaluationResult(
+            return DataEvaluationResult(
                 evaluatedValue = it,
                 cellDependencies = emptyList()
             )
         }
 
         str.toDoubleOrNull()?.let {
-            return DoubleEvaluationResult(
+            return DataEvaluationResult(
                 evaluatedValue = it,
                 cellDependencies = emptyList()
             )
         }
 
         str.toBooleanStrictOrNull()?.let {
-            return BooleanEvaluationResult(
+            return DataEvaluationResult(
                 evaluatedValue = it,
                 cellDependencies = emptyList()
             )
         }
 
-        return StringEvaluationResult(
+        return DataEvaluationResult(
             evaluatedValue = str,
             cellDependencies = emptyList()
         )
