@@ -16,15 +16,18 @@ class OperatorBinary(
 
     override fun evaluate(context: Context): EvaluationResult {
         val leftEvaluated = leftRaw.evaluate(context)
-        val rightEvaluated = rightRaw.evaluate(context)
+        if (leftEvaluated.evaluatedType == EvaluationResultType.Error) return leftEvaluated
 
-        val right = rightEvaluated.evaluatedValue
-        val left = leftEvaluated.evaluatedValue
+        val rightEvaluated = rightRaw.evaluate(context)
+        if (rightEvaluated.evaluatedType == EvaluationResultType.Error) return rightEvaluated
+
         val dependencies = rightEvaluated.cellDependencies + leftEvaluated.cellDependencies
 
         return when (operator) {
             Token.Operator.Binary.Or -> {
-                if (left is Boolean && right is Boolean) {
+                if (rightEvaluated.tryToConvertType(EvaluationResultType.Boolean) != null && leftEvaluated.tryToConvertType(EvaluationResultType.Boolean) != null) {
+                    val left = leftEvaluated.evaluatedValue as Boolean
+                    val right = rightEvaluated.evaluatedValue as Boolean
                     EvaluationResult((left || right), EvaluationResultType.Boolean, dependencies)
                 } else {
                     EvaluationResult.buildErrorResult(booleanErrorMessage.invoke("||"), dependencies)
@@ -32,7 +35,9 @@ class OperatorBinary(
             }
 
             Token.Operator.Binary.And -> {
-                if (left is Boolean && right is Boolean) {
+                if (rightEvaluated.tryToConvertType(EvaluationResultType.Boolean) != null && leftEvaluated.tryToConvertType(EvaluationResultType.Boolean) != null) {
+                    val left = leftEvaluated.evaluatedValue as Boolean
+                    val right = rightEvaluated.evaluatedValue as Boolean
                     EvaluationResult((left && right), EvaluationResultType.Boolean, dependencies)
                 } else {
                     EvaluationResult.buildErrorResult(booleanErrorMessage.invoke("&&"), dependencies)
@@ -41,104 +46,110 @@ class OperatorBinary(
 
             Token.Operator.Binary.Plus -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first + second },
                 { first, second -> first + second },
             )
 
             Token.Operator.Binary.Minus -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first - second },
                 { first, second -> first - second },
             )
 
             Token.Operator.Binary.Multiplication -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first * second },
                 { first, second -> first * second },
             )
 
             Token.Operator.Binary.Division -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first / second },
                 { first, second -> first / second },
             )
 
             Token.Operator.Binary.Modulo -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first % second },
                 { first, second -> first % second },
             )
 
             Token.Operator.Binary.Power -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first.toDouble().pow(second).toInt() },
                 { first, second -> first.pow(second) },
             )
 
             Token.Operator.Binary.Greater -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first > second },
                 { first, second -> first > second },
             )
 
             Token.Operator.Binary.GreaterOrEqual -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first >= second },
                 { first, second -> first >= second },
             )
 
             Token.Operator.Binary.Less -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first < second },
                 { first, second -> first < second },
             )
 
             Token.Operator.Binary.LessOrEqual -> numbersEvaluation(
                 operator,
-                left, right, dependencies,
+                leftEvaluated, rightEvaluated, dependencies,
                 { first, second -> first <= second },
                 { first, second -> first <= second },
             )
 
             Token.Operator.Binary.Equal -> EvaluationResult(
-                (left == right), EvaluationResultType.Boolean, dependencies
+                (leftEvaluated.evaluatedValue == rightEvaluated.evaluatedValue), EvaluationResultType.Boolean, dependencies
             )
         }
     }
 
     private fun numbersEvaluation(
         operator: Token.Operator.Binary,
-        firstArg: Any?,
-        secondArg: Any?,
+        firstArg: EvaluationResult?,
+        secondArg: EvaluationResult?,
         dependencies: List<CellPointer>,
         intCallback: (Int, Int) -> Any,
         doubleCallback: (Double, Double) -> Any,
     ): EvaluationResult {
-        return if (firstArg is Number && secondArg is Number) {
-            if (firstArg is Int && secondArg is Int) {
-                EvaluationResult(
-                    evaluatedValue = intCallback.invoke(firstArg, secondArg),
-                    evaluatedType = EvaluationResultType.Int,
-                    cellDependencies = dependencies
-                )
-            } else {
-                EvaluationResult(
-                    evaluatedValue = doubleCallback.invoke(firstArg.toDouble(), secondArg.toDouble()),
-                    evaluatedType = EvaluationResultType.Int,
-                    cellDependencies = dependencies
-                )
-            }
-        } else {
-            return EvaluationResult.buildErrorResult(numbersErrorMessage.invoke(operator.symbol), dependencies)
+        val firstInt = firstArg?.tryToConvertType(EvaluationResultType.Int)
+        val secondInt = secondArg?.tryToConvertType(EvaluationResultType.Int)
+        if (firstInt != null && secondInt != null) {
+            return EvaluationResult(
+                evaluatedValue = intCallback.invoke(firstInt.evaluatedValue as Int, secondInt.evaluatedValue as Int),
+                evaluatedType = EvaluationResultType.Int,
+                cellDependencies = dependencies
+            )
         }
+        val firstDouble = firstArg?.tryToConvertType(EvaluationResultType.Double)
+        val secondDouble = secondArg?.tryToConvertType(EvaluationResultType.Double)
+        if (firstDouble != null && secondDouble != null) {
+            return EvaluationResult(
+                evaluatedValue = doubleCallback.invoke(
+                    firstDouble.evaluatedValue as Double,
+                    secondDouble.evaluatedValue as Double
+                ),
+                evaluatedType = EvaluationResultType.Int,
+                cellDependencies = dependencies
+            )
+        }
+
+        return EvaluationResult.buildErrorResult(numbersErrorMessage.invoke(operator.symbol), dependencies)
     }
 }

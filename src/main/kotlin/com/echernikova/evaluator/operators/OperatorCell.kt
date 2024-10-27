@@ -26,7 +26,7 @@ class OperatorCellLink(
     private val cellPosition by lazy { link.getCellPosition() }
 
     override fun evaluate(context: Context): EvaluationResult {
-        if (cellPosition.row < 1 || cellPosition.column > 27 || cellPosition.column < 0) {
+        if (cellPosition.row < 0 || cellPosition.column > 27 || cellPosition.column < 0) {
             return EvaluationResult.buildErrorResult("Incorrect cell link ${link.name}", emptyList())
         }
         val link = context.table.getCell(cellPosition) ?: run {
@@ -38,7 +38,7 @@ class OperatorCellLink(
 
         if (link.evaluating) {
             return EvaluationResult.buildErrorResult(
-                "Cycle dependencies!",
+                errorMessage = "Cycle dependencies!",
                 dependencies = listOf(cellPosition)
             )
         }

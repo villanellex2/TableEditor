@@ -27,7 +27,7 @@ sealed interface Token {
             GreaterOrEqual(">=", 4),
             Less("<", 4),
             LessOrEqual("<=", 4),
-            Plus("*", 5),
+            Plus("+", 5),
             Minus("-", 5),
             Multiplication("*", 6),
             Division("/", 6),
