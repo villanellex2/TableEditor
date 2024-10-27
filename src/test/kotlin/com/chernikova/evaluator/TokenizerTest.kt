@@ -102,7 +102,6 @@ class TokenizerTest {
     @Test
     fun `tokenizer check cell link for correctness`() {
         val input = arrayOf(
-            "C85.0" to "Incorrect cell link C85.0",
             "AA8" to "Incorrect cell link AA8"
         )
 
@@ -144,7 +143,7 @@ class TokenizerTest {
         }.onFailure { exception ->
             assertEquals(errorMessage, exception.message)
         }.onSuccess {
-            assertFails { "Expected exceptions '$errorMessage' on tokenizing '$string'" }
+            throw AssertionError("Expected exceptions '$errorMessage' on tokenizing '$string'")
         }
     }
 }

@@ -33,8 +33,10 @@ class TableCellRenderer(
         }
 
         val cellEvaluationData = tableData.getCell(CellPointer(row, column)) ?: return cell
+        val result = cellEvaluationData.evaluationResult
+        val value = result?.evaluatedValue
 
-        when (val result = cellEvaluationData.evaluationResult) {
+        when (result) {
             is ErrorEvaluationResult -> {
                 cell.horizontalAlignment = CENTER
                 cell.font = TableTheme.errorCellFont
@@ -42,26 +44,25 @@ class TableCellRenderer(
                 cell.text = result.evaluatedValue
             }
 
-            is IntegerEvaluationResult, is StringEvaluationResult -> {
-                cell.horizontalAlignment = RIGHT
-                setNormalValue(cellEvaluationData.evaluationResult)
+            is DataEvaluationResult -> {
+                when (value) {
+                    is Int, String -> {
+                        cell.horizontalAlignment = RIGHT
+                        setNormalValue(cellEvaluationData.evaluationResult)
+                    }
+                    is Double, Boolean -> {
+                        cell.horizontalAlignment = LEFT
+                        setNormalValue(cellEvaluationData.evaluationResult)
+                    }
+                    is EvaluationResult.Empty -> {
+                        cell.text = ""
+                    }
+                }
             }
-
-            is DoubleEvaluationResult, is BooleanEvaluationResult, is NumberEvaluationResult -> {
-                cell.horizontalAlignment = LEFT
-                setNormalValue(cellEvaluationData.evaluationResult)
-            }
-
 
             null -> {
                 cell.text = ""
             }
-
-            is EmptyCellEvaluationResult -> {
-                cell.text = ""
-            }
-
-            is CellRangeEvaluationResult -> TODO()
         }
         return cell
     }
