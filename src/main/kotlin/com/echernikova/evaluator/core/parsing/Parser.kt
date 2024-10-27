@@ -76,7 +76,8 @@ object Parser {
     }
 
     private fun parseCellLink(cell: Token.Cell.CellLink, state: ParsingState): Operator {
-        if (state.next() !is Token.Cell.CellDelimiter) return OperatorCellRange(cell, cell)
+        state.forward()
+        if (state.next() !is Token.Cell.CellDelimiter)return OperatorCellLink(cell)
         state.forward()
 
         val nextCell = state.next()

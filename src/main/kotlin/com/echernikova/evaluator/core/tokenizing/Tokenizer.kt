@@ -126,7 +126,7 @@ object Tokenizer {
         val start = state.index
         do {
             state.forward()
-        } while (!state.current().isIdentifierEnd())
+        } while (state.current().isAlphabetic() || state.current().isDigit())
 
         val identifier = state.part(start, state.index)
         val boolean = identifier.toBooleanStrictOrNull()

@@ -1,15 +1,17 @@
 package com.echernikova.evaluator.core
 
+import com.echernikova.editor.table.model.CellPointer
+
 data class EvaluationResult(
     val evaluatedValue: Any?,
     val evaluatedType: EvaluationResultType,
-    val cellDependencies: List<Pair<Int, Int>> = emptyList(),
+    val cellDependencies: List<CellPointer> = emptyList(),
     val evaluatedError: EvaluationException? = null,
 ) {
     companion object {
         fun buildErrorResult(
             errorMessage: String,
-            dependencies: List<Pair<Int, Int>>,
+            dependencies: List<CellPointer>,
         ) = EvaluationResult(
             null,
             EvaluationResultType.Error,
@@ -34,7 +36,9 @@ enum class EvaluationResultType {
     Int,
     Double,
     Boolean,
-    CellLink,
     String,
+    Empty,
+    CellLink,
+    CellRange,
     Error
 }

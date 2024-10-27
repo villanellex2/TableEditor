@@ -5,11 +5,10 @@ import com.echernikova.evaluator.core.Evaluator
 
 class TableCell(
     initialValue: String?,
-    val row: Int,
-    val column: Int,
+    val cellPointer: CellPointer,
     private val tableData: TableData,
     private val evaluator: Evaluator,
-    private val cellExpiredCallback: (Int, Int) -> Unit,
+    private val cellExpiredCallback: (CellPointer) -> Unit,
 ) {
     private val onDependenciesUpdatedCallback = OnCellChanged { evaluate() }
     private val onCellChangedListeners by lazy { mutableListOf<OnCellChanged>() }
@@ -23,39 +22,36 @@ class TableCell(
             }
         }
 
-    private var evaluating = false
+    var evaluating = false
+    private set
     var evaluationResult: EvaluationResult? = null
-
-    init {
-        evaluate()
-    }
 
     fun evaluate() {
         val value = rawValue ?: return clearResult()
         if (evaluating) {
             evaluationResult = EvaluationResult.buildErrorResult(
-                errorMessage = "Cyclic dependenciesю",
+                errorMessage = "Cyclic dependencies",
                 dependencies = evaluationResult?.cellDependencies ?: emptyList()
             )
             return
         }
 
         evaluating = true
-        evaluationResult = evaluator.evaluate(value)
+        evaluationResult = evaluator.evaluate(value, tableData)
 
         dependencies.forEach { it.onCellChangedListeners.remove(onDependenciesUpdatedCallback) }
         dependencies.clear()
 
-        evaluationResult?.cellDependencies?.forEach { (row, column) ->
-            tableData.getOrCreateCell(row, column)?.also {
-                dependencies.add(it)
-                it.onCellChangedListeners.add(onDependenciesUpdatedCallback)
+        evaluationResult?.cellDependencies?.forEach {
+            tableData.getOrCreateCell(it)?.also { cell ->
+                dependencies.add(cell)
+                cell.onCellChangedListeners.add(onDependenciesUpdatedCallback)
             }
         }
 
-        cellExpiredCallback(row, column)
-        onCellChangedListeners.forEach { it.onCellChanged() }
         evaluating = false
+        cellExpiredCallback(cellPointer)
+        onCellChangedListeners.forEach { it.onCellChanged() }
     }
 
     private fun clearResult() {

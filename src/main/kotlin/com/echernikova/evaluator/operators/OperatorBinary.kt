@@ -1,5 +1,6 @@
 package com.echernikova.evaluator.operators
 
+import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.evaluator.core.*
 import com.echernikova.evaluator.core.tokenizing.Token
 import kotlin.math.pow
@@ -17,8 +18,8 @@ class OperatorBinary(
         val leftEvaluated = leftRaw.evaluate(context)
         val rightEvaluated = rightRaw.evaluate(context)
 
-        val right = rightEvaluated.evaluatedValue ?: throw EvaluationException("")
-        val left = leftEvaluated.evaluatedValue ?: throw EvaluationException("")
+        val right = rightEvaluated.evaluatedValue
+        val left = leftEvaluated.evaluatedValue
         val dependencies = rightEvaluated.cellDependencies + leftEvaluated.cellDependencies
 
         return when (operator) {
@@ -116,9 +117,9 @@ class OperatorBinary(
 
     private fun numbersEvaluation(
         operator: Token.Operator.Binary,
-        firstArg: Any,
-        secondArg: Any,
-        dependencies: List<Pair<Int, Int>>,
+        firstArg: Any?,
+        secondArg: Any?,
+        dependencies: List<CellPointer>,
         intCallback: (Int, Int) -> Any,
         doubleCallback: (Double, Double) -> Any,
     ): EvaluationResult {

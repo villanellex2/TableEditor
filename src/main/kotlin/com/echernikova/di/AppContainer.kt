@@ -3,7 +3,7 @@ package com.echernikova.di
 import com.echernikova.editor.EditorViewModel
 import com.echernikova.evaluator.functions.Function
 import com.echernikova.editor.table.TableViewModel
-import com.echernikova.evaluator.core.Context
+import com.echernikova.editor.table.model.TableData
 import com.echernikova.evaluator.core.Evaluator
 import com.echernikova.evaluator.functions.FunctionSum
 import com.echernikova.fileopening.FileOpeningFrameViewModel
@@ -18,8 +18,8 @@ val functionsModule = module {
 }
 
 val evaluatorModule = module {
-    single { Context(getAll<Function>().associateBy { it.name }) }
-    single { Evaluator(get()) }
+    factory { TableData(get()) }
+    single { Evaluator(getAll<Function>().associateBy { it.name }) }
 }
 
 val appModule = module {
@@ -29,7 +29,7 @@ val appModule = module {
     factory { (file: File, initialData: Array<Array<Any?>>) ->
         EditorViewModel(
             file,
-            get { parametersOf(initialData) })
+            get { parametersOf(initialData, get()) })
     }
 }
 

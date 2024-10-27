@@ -1,27 +1,31 @@
 package com.echernikova.evaluator.core
 
+import com.echernikova.editor.table.model.TableData
 import com.echernikova.evaluator.core.tokenizing.Tokenizer
 import com.echernikova.evaluator.core.parsing.Parser
+import com.echernikova.evaluator.functions.Function
 
 class Evaluator (
-    private val context: Context,
+    private val declaredFunctions: Map<String, Function>,
 ) {
-    fun evaluate(value: String): EvaluationResult {
+    fun evaluate(value: String, tableData: TableData): EvaluationResult {
         if (value.isNullOrEmpty()) return EvaluationResult(
             evaluatedValue = "",
             evaluatedType = EvaluationResultType.String
         )
 
         if (value.startsWith("=")) {
+            val context = Context(tableData, declaredFunctions)
             val substring = value.substring(1, value.length)
 
             val parsingResult = runCatching {
                 val tokenizedResult = Tokenizer.tokenize(substring)
                 Parser.parse(tokenizedResult)
-            }.onFailure {
+            }.onFailure { e ->
                 return EvaluationResult(
                     evaluatedType = EvaluationResultType.Error,
-                    evaluatedValue = null
+                    evaluatedValue = null,
+                    evaluatedError = e as? EvaluationException
                 )
             }
 
