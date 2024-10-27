@@ -4,5 +4,5 @@ import com.echernikova.evaluator.core.Context
 import com.echernikova.evaluator.core.EvaluationResult
 
 interface Operator {
-    fun evaluate(context: Context): EvaluationResult
+    fun evaluate(context: Context): EvaluationResult<*>
 }

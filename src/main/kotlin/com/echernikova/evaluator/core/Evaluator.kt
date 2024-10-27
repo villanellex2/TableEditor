@@ -8,10 +8,10 @@ import com.echernikova.evaluator.functions.Function
 class Evaluator (
     private val declaredFunctions: Map<String, Function>,
 ) {
-    fun evaluate(value: String, tableData: TableData): EvaluationResult {
-        if (value.isNullOrEmpty()) return EvaluationResult(
-            evaluatedValue = "",
-            evaluatedType = EvaluationResultType.String
+    fun evaluate(value: String, tableData: TableData): EvaluationResult<*> {
+        if (value.isEmpty()) return EmptyCellEvaluationResult(
+            evaluatedValue = null,
+            cellDependencies = emptyList()
         )
 
         if (value.startsWith("=")) {
@@ -22,47 +22,46 @@ class Evaluator (
                 val tokenizedResult = Tokenizer.tokenize(substring)
                 Parser.parse(tokenizedResult)
             }.onFailure { e ->
-                return EvaluationResult(
-                    evaluatedType = EvaluationResultType.Error,
-                    evaluatedValue = null,
-                    evaluatedError = e as? EvaluationException
+                return ErrorEvaluationResult(
+                    evaluatedValue = e.message,
+                    cellDependencies = emptyList()
                 )
             }
 
-            return parsingResult.getOrNull()?.evaluate(context) ?: EvaluationResult(
-                evaluatedType = EvaluationResultType.Error,
-                evaluatedValue = null
+            return parsingResult.getOrNull()?.evaluate(context) ?: ErrorEvaluationResult(
+                evaluatedValue = "",
+                cellDependencies = emptyList()
             )
         } else {
             return tryToParseAsLiteral(value)
         }
     }
 
-    private fun tryToParseAsLiteral(str: String): EvaluationResult {
+    private fun tryToParseAsLiteral(str: String): EvaluationResult<*> {
         str.toIntOrNull()?.let {
-            return EvaluationResult(
+            return IntegerEvaluationResult(
                 evaluatedValue = it,
-                evaluatedType = EvaluationResultType.Int
+                cellDependencies = emptyList()
             )
         }
 
         str.toDoubleOrNull()?.let {
-            return EvaluationResult(
+            return DoubleEvaluationResult(
                 evaluatedValue = it,
-                evaluatedType = EvaluationResultType.Double
+                cellDependencies = emptyList()
             )
         }
 
         str.toBooleanStrictOrNull()?.let {
-            return EvaluationResult(
+            return BooleanEvaluationResult(
                 evaluatedValue = it,
-                evaluatedType = EvaluationResultType.Boolean
+                cellDependencies = emptyList()
             )
         }
 
-        return EvaluationResult(
+        return StringEvaluationResult(
             evaluatedValue = str,
-            evaluatedType = EvaluationResultType.String
+            cellDependencies = emptyList()
         )
     }
 }

@@ -7,7 +7,8 @@ enum class SupportedExtensions(
     val fileHelper: FileHelper,
 ) {
 
-    XLS("xls", XSSFileHelper());
+    XLS("xls", XSSFileHelper()),
+    XLSX("xlsx", XSSFileHelper());
 
     companion object {
         fun fromFile(file: File): SupportedExtensions? {

@@ -44,7 +44,8 @@ object Parser {
     private fun parseUnary(state: ParsingState): Operator {
         val currToken = state.current()
         return if (!state.isAtEnd() && currToken is Token.Operator.Unary) {
-            OperatorUnary(state.next() as Token.Operator.Unary, parseUnary(state))
+            state.forward()
+            OperatorUnary(currToken, parseUnary(state))
         } else {
             parseRest(state)
         }
@@ -56,7 +57,7 @@ object Parser {
         return when (val token = state.current()) {
             is Token.Literal -> {
                 state.forward()
-                OperatorLiteral.getFor(token)
+                OperatorLiteral(token)
             }
             is Token.Cell.CellLink -> parseCellLink(token, state)
             is Token.Function -> parseFunction(token, state)

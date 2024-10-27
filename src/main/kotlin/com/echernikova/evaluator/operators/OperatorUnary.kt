@@ -1,37 +1,35 @@
 package com.echernikova.evaluator.operators
 
-import com.echernikova.evaluator.core.Context
-import com.echernikova.evaluator.core.EvaluationResult
+import com.echernikova.evaluator.core.*
 import com.echernikova.evaluator.core.tokenizing.Token
+
+private val ERROR_MESSAGE_NUMBERS = { s: String -> "Unary operator '$s' supports only numbers as argument." }
 
 class OperatorUnary(
     private val operator: Token.Operator.Unary,
     private val arg: Operator,
 ): Operator {
 
-    override fun evaluate(context: Context): EvaluationResult {
+    override fun evaluate(context: Context): EvaluationResult<*> {
         val argEvaluated = arg.evaluate(context)
-        val value = argEvaluated.evaluatedValue
+
+        val error = ErrorEvaluationResult(
+            evaluatedValue = ERROR_MESSAGE_NUMBERS(operator.symbol),
+            cellDependencies = argEvaluated.cellDependencies
+        )
+        if (argEvaluated !is NumberEvaluationResult) return error
 
         return when (operator) {
-            Token.Operator.Unary.Plus -> {
-                if (argEvaluated.evaluatedValue is Number) {
-                    argEvaluated
-                } else {
-                    EvaluationResult.buildErrorResult(
-                        "Unary operator '+' supports only numbers as argument.",
-                        argEvaluated.cellDependencies
-                    )
-                }
-            }
-
+            Token.Operator.Unary.Plus -> argEvaluated
             Token.Operator.Unary.Minus -> {
-                when (value) {
-                    is Int ->  EvaluationResult.copyWithNewValue(argEvaluated, -value)
-                    is Double -> EvaluationResult.copyWithNewValue(argEvaluated, -value)
-                    else -> EvaluationResult.buildErrorResult(
-                        "Unary operator '-' supports only numbers as argument.",
-                        argEvaluated.cellDependencies
+                when (argEvaluated) {
+                    is IntegerEvaluationResult -> argEvaluated.copyWith(
+                           newValue = -argEvaluated.evaluatedValue,
+                           newDependencies = listOf()
+                    )
+                    is DoubleEvaluationResult -> argEvaluated.copyWith(
+                        newValue = -argEvaluated.evaluatedValue,
+                        newDependencies = listOf()
                     )
                 }
             }

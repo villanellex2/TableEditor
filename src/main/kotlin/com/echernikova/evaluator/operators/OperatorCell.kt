@@ -1,10 +1,7 @@
 package com.echernikova.evaluator.operators
 
 import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.evaluator.core.Context
-import com.echernikova.evaluator.core.EvaluationException
-import com.echernikova.evaluator.core.EvaluationResult
-import com.echernikova.evaluator.core.EvaluationResultType
+import com.echernikova.evaluator.core.*
 import com.echernikova.evaluator.core.tokenizing.Token
 import kotlin.math.max
 import kotlin.math.min
@@ -25,30 +22,32 @@ class OperatorCellLink(
 ): OperatorCell {
     private val cellPosition by lazy { link.getCellPosition() }
 
-    override fun evaluate(context: Context): EvaluationResult {
+    override fun evaluate(context: Context): EvaluationResult<*> {
         if (cellPosition.row < 0 || cellPosition.column > 27 || cellPosition.column < 0) {
-            return EvaluationResult.buildErrorResult("Incorrect cell link ${link.name}", emptyList())
+            return ErrorEvaluationResult("Incorrect cell link ${link.name}", emptyList())
         }
+
         val link = context.table.getCell(cellPosition) ?: run {
-            return EvaluationResult(
+            return EmptyCellEvaluationResult(
                 evaluatedValue = null,
-                evaluatedType = EvaluationResultType.Empty
+                cellDependencies = emptyList()
             )
         }
 
         if (link.evaluating) {
-            return EvaluationResult.buildErrorResult(
-                errorMessage = "Cycle dependencies!",
-                dependencies = listOf(cellPosition)
+            return ErrorEvaluationResult(
+                evaluatedValue = "Cycle dependencies!",
+                cellDependencies = listOf(cellPosition)
             )
         }
 
-        val linkEvaluationResult = link.evaluationResult
-        return if (linkEvaluationResult != null) EvaluationResult(
-            evaluatedValue = linkEvaluationResult.evaluatedValue,
-            evaluatedType = linkEvaluationResult.evaluatedType,
-            evaluatedError = linkEvaluationResult.evaluatedError,
-        ) else EvaluationResult.buildErrorResult("", listOf(cellPosition))
+        return link.evaluationResult?.copyWith(
+            newValue = null,
+            newDependencies = listOf(cellPosition)
+        ) ?: ErrorEvaluationResult(
+            evaluatedValue = "Cell with link $cellPosition is not evaluated.",
+            cellDependencies = listOf(cellPosition)
+        )
     }
 }
 
@@ -56,9 +55,8 @@ class OperatorCellRange(
     private val from: Token.Cell.CellLink,
     private val to: Token.Cell.CellLink,
 ): OperatorCell {
-    override fun evaluate(context: Context): EvaluationResult = EvaluationResult(
+    override fun evaluate(context: Context): EvaluationResult<*> = CellRangeEvaluationResult(
         evaluatedValue = this,
-        evaluatedType = EvaluationResultType.CellRange,
         cellDependencies = buildCellDependenciesInBetween(),
     )
 

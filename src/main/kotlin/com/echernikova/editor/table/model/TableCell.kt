@@ -1,5 +1,6 @@
 package com.echernikova.editor.table.model
 
+import com.echernikova.evaluator.core.ErrorEvaluationResult
 import com.echernikova.evaluator.core.EvaluationResult
 import com.echernikova.evaluator.core.Evaluator
 
@@ -24,14 +25,14 @@ class TableCell(
 
     var evaluating = false
     private set
-    var evaluationResult: EvaluationResult? = null
+    var evaluationResult: EvaluationResult<*>? = null
 
     fun evaluate() {
         val value = rawValue ?: return clearResult()
         if (evaluating) {
-            evaluationResult = EvaluationResult.buildErrorResult(
-                errorMessage = "Cyclic dependencies",
-                dependencies = evaluationResult?.cellDependencies ?: emptyList()
+            evaluationResult = ErrorEvaluationResult(
+                evaluatedValue = "Cyclic dependencies",
+                cellDependencies = evaluationResult?.cellDependencies ?: emptyList()
             )
             return
         }
