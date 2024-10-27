@@ -2,8 +2,7 @@ package com.echernikova.editor.table
 
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableData
-import com.echernikova.evaluator.core.EvaluationResult
-import com.echernikova.evaluator.core.EvaluationResultType
+import com.echernikova.evaluator.core.*
 import java.awt.Component
 import javax.swing.JLabel
 import javax.swing.JTable
@@ -35,37 +34,39 @@ class TableCellRenderer(
 
         val cellEvaluationData = tableData.getCell(CellPointer(row, column)) ?: return cell
 
-        when (cellEvaluationData.evaluationResult?.evaluatedType) {
-            EvaluationResultType.Error -> {
+        when (val result = cellEvaluationData.evaluationResult) {
+            is ErrorEvaluationResult -> {
                 cell.horizontalAlignment = CENTER
                 cell.font = TableTheme.errorCellFont
                 cell.foreground = TableTheme.errorCellColor
-                cell.text = cellEvaluationData.evaluationResult?.evaluatedError?.message
+                cell.text = result.evaluatedValue
             }
 
-            EvaluationResultType.Int, EvaluationResultType.String -> {
+            is IntegerEvaluationResult, is StringEvaluationResult -> {
                 cell.horizontalAlignment = RIGHT
                 setNormalValue(cellEvaluationData.evaluationResult)
             }
 
-            EvaluationResultType.Double, EvaluationResultType.Boolean -> {
+            is DoubleEvaluationResult, is BooleanEvaluationResult, is NumberEvaluationResult -> {
                 cell.horizontalAlignment = LEFT
                 setNormalValue(cellEvaluationData.evaluationResult)
             }
+
 
             null -> {
                 cell.text = ""
             }
 
-            EvaluationResultType.Empty -> {
+            is EmptyCellEvaluationResult -> {
                 cell.text = ""
             }
-            EvaluationResultType.CellRange, EvaluationResultType.CellLink -> TODO()
+
+            is CellRangeEvaluationResult -> TODO()
         }
         return cell
     }
 
-    private fun JLabel.setNormalValue(evaluationResult: EvaluationResult?) {
+    private fun JLabel.setNormalValue(evaluationResult: EvaluationResult<*>?) {
         font = TableTheme.normalCellFont
         foreground = TableTheme.normalCellColor
         text = evaluationResult?.evaluatedValue.toString()
