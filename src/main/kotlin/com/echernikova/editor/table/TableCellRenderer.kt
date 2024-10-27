@@ -1,5 +1,6 @@
 package com.echernikova.editor.table
 
+import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableData
 import com.echernikova.evaluator.core.EvaluationResult
 import com.echernikova.evaluator.core.EvaluationResultType
@@ -11,7 +12,7 @@ import javax.swing.table.DefaultTableCellRenderer
 private const val ERROR_MESSAGE = "ERROR!"
 
 class TableCellRenderer(
-    private val tableData: TableData,
+    val tableData: TableData,
 ) : DefaultTableCellRenderer() {
 
     override fun getTableCellRendererComponent(
@@ -32,14 +33,14 @@ class TableCellRenderer(
             return cell
         }
 
-        val cellEvaluationData = tableData.getCell(row, column) ?: return cell
+        val cellEvaluationData = tableData.getCell(CellPointer(row, column)) ?: return cell
 
         when (cellEvaluationData.evaluationResult?.evaluatedType) {
             EvaluationResultType.Error -> {
                 cell.horizontalAlignment = CENTER
                 cell.font = TableTheme.errorCellFont
                 cell.foreground = TableTheme.errorCellColor
-                cell.text = ERROR_MESSAGE
+                cell.text = cellEvaluationData.evaluationResult?.evaluatedError?.message
             }
 
             EvaluationResultType.Int, EvaluationResultType.String -> {
@@ -52,13 +53,14 @@ class TableCellRenderer(
                 setNormalValue(cellEvaluationData.evaluationResult)
             }
 
-            EvaluationResultType.CellLink -> {
-                cell.text = "Error, cell link in the end evaluation!"
-            }
-
             null -> {
                 cell.text = ""
             }
+
+            EvaluationResultType.Empty -> {
+                cell.text = ""
+            }
+            EvaluationResultType.CellRange, EvaluationResultType.CellLink -> TODO()
         }
         return cell
     }

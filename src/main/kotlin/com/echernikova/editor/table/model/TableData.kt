@@ -6,64 +6,59 @@ import java.util.*
 // todo: добавить топологическую сортировку при триггере коллбеков?
 // todo: коллбеки точно должны храниться где-нибудь не внутри таблиц, чтобы для пустых ячеек не инитить ячейки... или норм?
 class TableData(
-    sharingVector: Vector<Vector<Any?>>,
     private val evaluator: Evaluator,
-    private val cellExpiredCallback: (Int, Int) -> Unit,
 ) {
-    private val data = sharingVector.mapIndexed { row, vector ->
-        val map = mutableMapOf<Int, TableCell>()
-        vector.forEachIndexed { column, value ->
-            if (column != 0) {
-                if (!value?.toString().isNullOrEmpty()) {
-                    val cell = createCell(row, column, value.toString())
-                    map[column] = cell
-                    cell.evaluate()
+    private var data: MutableMap<CellPointer, TableCell> = mutableMapOf()
+    private var dataExpiredCallback: ((CellPointer) -> Unit) = {}
+
+    fun initData(sharingVector: Vector<Vector<Any?>>) {
+        assert(data.isEmpty()) { "Data should be empty on init" }
+
+        sharingVector.forEachIndexed { row, vector ->
+            vector.forEachIndexed { column, value ->
+                if (value != null) {
+                    data[CellPointer(row, column)] = createCell(CellPointer(row, column), value.toString())
                 }
             }
         }
-
-        map
-    }.toMutableList()
-
-    fun getCell(row: Int, column: Int): TableCell? {
-        if (row < 0 || column < 0) return null
-        if (data.size > row) {
-            return data[row][column]
-        }
-        return null
+        data.forEach { (i, value) -> value.evaluate() }
     }
 
-    fun getOrCreateCell(row: Int, column: Int): TableCell? {
-        if (column == 0) return null
-        return getCell(row, column) ?: createCell(row, column).also {
-            data[row][column] = it
+    fun setOnDataExpiredCallback(callback: (CellPointer) -> Unit) {
+        dataExpiredCallback = callback
+    }
+
+    fun getCell(pointer: CellPointer): TableCell? = data[pointer]
+
+    fun getOrCreateCell(pointer: CellPointer): TableCell? {
+        return getCell(pointer) ?: createCell(pointer).also {
+            data[pointer] = it
         }
     }
 
-    fun setValueToCell(row: Int, column: Int, value: String?) {
-        getCell(row, column)?.also {
+    fun setValueToCell(pointer: CellPointer, value: String?) {
+        getCell(pointer)?.also {
             it.rawValue = value
         } ?: run {
-            createCell(row, column, value).also {
-                data[row][column] = it
+            createCell(pointer, value).also {
+                data[pointer] = it
+                it.evaluate()
+                dataExpiredCallback.invoke(pointer)
             }
         }
     }
 
     fun addRow(row: Int, values: Array<Any?>) {
-        data.add(
-            values.mapIndexedNotNull { i, value ->
-            if (i == 0 || value == null) null else createCell(row, i, value.toString())
-        }.associateBy { it.column }.toMutableMap()
-        )
+        values.mapIndexedNotNull { i, value ->
+            if (i == 0 || value == null) null else data[CellPointer(row, i)] = createCell(CellPointer(row, i), value.toString())
+        }
     }
 
-    private fun createCell(row: Int, column: Int, value: String? = null) = TableCell(
+    private fun createCell(pointer: CellPointer, value: String? = null) = TableCell(
         initialValue = value,
-        row = row,
-        column = column,
+        cellPointer = pointer,
         tableData = this,
         evaluator = evaluator,
-        cellExpiredCallback = cellExpiredCallback
+        cellExpiredCallback = dataExpiredCallback
     )
 }

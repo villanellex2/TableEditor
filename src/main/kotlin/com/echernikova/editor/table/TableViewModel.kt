@@ -1,5 +1,6 @@
 package com.echernikova.editor.table
 
+import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableData
 import com.echernikova.evaluator.core.Evaluator
 import javax.swing.table.DefaultTableModel
@@ -8,26 +9,24 @@ private const val DEFAULT_PAGE_SIZE = 100
 
 class TableViewModel(
     initialData: Array<Array<Any?>>?,
-    evaluator: Evaluator,
+    val tableData: TableData,
 ): DefaultTableModel(initialData, getColumns()) {
+
     private var isLoading = false
     private val lock = Any()
-    private var isUpdating = false
-    val tableData = TableData(dataVector, evaluator) { row, column ->
-        fireTableCellUpdated(row, column)
-    }
 
     init {
+        tableData.initData(dataVector)
+        tableData.setOnDataExpiredCallback { cellPointer: CellPointer ->
+            fireTableCellUpdated(cellPointer.row, cellPointer.column)
+        }
+
         addTableModelListener { event ->
             if (event.lastRow < 0 || event.column < 0) return@addTableModelListener
             if (event.lastRow >= rowCount || event.column >= columnCount) return@addTableModelListener
 
-            if (!isUpdating) {
-                isUpdating = true
                 val cellValue = getValueAt(event.lastRow, event.column)?.toString()
-                tableData.setValueToCell(event.lastRow, event.column, cellValue)
-                isUpdating = false
-            }
+                tableData.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
         }
     }
 
