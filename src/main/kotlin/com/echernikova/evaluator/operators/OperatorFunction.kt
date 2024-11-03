@@ -19,8 +19,7 @@ class OperatorFunction(
         val name = funcToken.name
         val function = context.declaredFunctions[name] ?: throw EvaluationException("Unsupported function '$name'")
 
-        val argsValues = evaluatedArgs.map { it.evaluatedValue }
-        return function.evaluate(context, argsValues).let {
+        return function.evaluate(context, evaluatedArgs).let {
             DataEvaluationResult(
                 evaluatedValue = it.evaluatedValue,
                 cellDependencies = evaluatedArgs.map { it.cellDependencies }.reduce { list1, list2 -> list1 + list2 }

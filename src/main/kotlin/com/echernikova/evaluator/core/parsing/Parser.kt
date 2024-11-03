@@ -93,14 +93,17 @@ object Parser {
         if (state.next() != Token.Bracket.LeftRound) {
             throw EvaluationException("'(' expected after function call")
         }
+        state.forward()
+        state.forward()
         val arguments = mutableListOf<Operator>()
         while (!state.isAtEnd() && state.current() != Token.Bracket.RightRound) {
             arguments += startParsing(state)
             if (state.current() is Token.Function.ArgumentDelimiter) state.forward()
         }
-        if (state.next() != Token.Bracket.RightRound) {
+        if (state.current() != Token.Bracket.RightRound) {
             throw EvaluationException("expected ')' after a function call")
         }
+        state.forward()
         return OperatorFunction(token, arguments)
     }
 }

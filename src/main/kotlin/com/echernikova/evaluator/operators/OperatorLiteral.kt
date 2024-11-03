@@ -12,7 +12,7 @@ class OperatorLiteral(
     override fun evaluate(context: Context): EvaluationResult<*> {
         return DataEvaluationResult(
             evaluatedValue = token.value,
-            cellDependencies = emptyList()
+            cellDependencies = emptySet()
         )
     }
 }

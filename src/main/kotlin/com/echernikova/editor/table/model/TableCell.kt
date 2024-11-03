@@ -33,7 +33,7 @@ class TableCell(
         if (evaluating) {
             evaluationResult = ErrorEvaluationResult(
                 evaluatedValue = "Cyclic dependencies",
-                cellDependencies = evaluationResult?.cellDependencies ?: emptyList()
+                cellDependencies = evaluationResult?.cellDependencies ?: emptySet()
             )
             return
         }

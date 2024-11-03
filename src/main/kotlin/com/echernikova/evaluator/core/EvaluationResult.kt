@@ -5,9 +5,30 @@ import com.echernikova.evaluator.operators.OperatorCellRange
 
 sealed class EvaluationResult<T : Any?>(
     open val evaluatedValue: T,
-    open val cellDependencies: List<CellPointer>
+    open val cellDependencies: Set<CellPointer>
 ) {
-    object Empty : EvaluationResult<Nothing?>(null, emptyList())
+    object Empty
+
+    fun copyWithDependencies(
+        newCellDependencies: Set<CellPointer>
+    ): EvaluationResult<*> {
+        return when (this) {
+            is DataEvaluationResult -> DataEvaluationResult(
+                evaluatedValue = evaluatedValue,
+                cellDependencies = newCellDependencies + cellDependencies
+            )
+
+            is CellRangeEvaluationResult -> CellRangeEvaluationResult(
+                evaluatedValue = evaluatedValue,
+                cellDependencies = newCellDependencies + cellDependencies
+            )
+
+            is ErrorEvaluationResult -> ErrorEvaluationResult(
+                evaluatedValue = evaluatedValue,
+                cellDependencies = newCellDependencies + cellDependencies
+            )
+        }
+    }
 
     fun tryConvertToBoolean(): EvaluationResult<Boolean>? {
         return when (evaluatedValue) {
@@ -87,17 +108,17 @@ sealed class EvaluationResult<T : Any?>(
  */
 sealed class FinalEvaluationResult<T>(
     override val evaluatedValue: T,
-    override val cellDependencies: List<CellPointer>
+    override val cellDependencies: Set<CellPointer>
 ) : EvaluationResult<T>(evaluatedValue, cellDependencies)
 
 data class DataEvaluationResult<T>(
     override val evaluatedValue: T,
-    override val cellDependencies: List<CellPointer>
+    override val cellDependencies: Set<CellPointer>
 ) : FinalEvaluationResult<T>(evaluatedValue, cellDependencies)
 
 data class ErrorEvaluationResult(
     override val evaluatedValue: String?,
-    override val cellDependencies: List<CellPointer>
+    override val cellDependencies: Set<CellPointer>
 ) : FinalEvaluationResult<String?>(evaluatedValue, cellDependencies)
 
 /**
@@ -105,6 +126,6 @@ data class ErrorEvaluationResult(
  */
 data class CellRangeEvaluationResult(
     override val evaluatedValue: OperatorCellRange,
-    override val cellDependencies: List<CellPointer>
+    override val cellDependencies: Set<CellPointer>
 ) : EvaluationResult<OperatorCellRange>(evaluatedValue, cellDependencies)
 

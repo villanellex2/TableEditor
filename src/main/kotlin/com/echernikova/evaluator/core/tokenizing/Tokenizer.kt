@@ -133,7 +133,7 @@ object Tokenizer {
 
         when {
             boolean != null -> state.tokens.add(Token.Literal.Bool(boolean))
-            // correctness of function will be checked on function evaluation
+            // correctness of function name will be checked on function evaluation
             state.current() == '(' -> state.tokens.add(Token.Function(identifier))
             isCellLinkCorrect(identifier) -> state.tokens.add(Token.Cell.CellLink(identifier))
             else ->  throw EvaluationException("Incorrect cell link $identifier")

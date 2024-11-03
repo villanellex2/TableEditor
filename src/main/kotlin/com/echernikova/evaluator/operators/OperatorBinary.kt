@@ -6,6 +6,8 @@ import com.echernikova.evaluator.core.tokenizing.Token
 import kotlin.math.pow
 
 private val numbersErrorMessage = { str: String -> "Binary operator '$str' supports only number values as arguments."}
+private val invalidArgumentsError = { str: String -> "Invalid arguments for binary operation '$str'." }
+private val overflowError = { "Overflow!." }
 private val booleanErrorMessage = { str: String -> "Binary operator '$str' supports only boolean values as arguments."}
 
 /**
@@ -91,7 +93,7 @@ class OperatorBinary(
             Token.Operator.Binary.Power -> numbersEvaluation(
                 operator,
                 leftEvaluated, rightEvaluated, dependencies,
-                { first, second -> first.toDouble().pow(second).toInt() },
+                { first, second -> first.toDouble().pow(second.toDouble()).toInt() },
                 { first, second -> first.pow(second) },
             )
 
@@ -134,30 +136,35 @@ class OperatorBinary(
         operator: Token.Operator.Binary,
         firstArg: EvaluationResult<*>,
         secondArg: EvaluationResult<*>,
-        dependencies: List<CellPointer>,
-        intCallback: (Int, Int) -> Any,
-        doubleCallback: (Double, Double) -> Any,
+        dependencies: Set<CellPointer>,
+        intCallback: (Int, Int) -> Any?,
+        doubleCallback: (Double, Double) -> Any?,
     ): EvaluationResult<*> {
         val firstInt = firstArg.tryConvertToInt()
         val secondInt = secondArg.tryConvertToInt()
+        val createResult = { result: Any? ->
+            when {
+                result == null -> ErrorEvaluationResult(invalidArgumentsError(operator.symbol), dependencies)
+
+                result is Double && result.isInfinite() -> ErrorEvaluationResult(overflowError(), dependencies)
+
+                result is Int && (result == Int.MAX_VALUE || result == Int.MIN_VALUE) -> {
+                    ErrorEvaluationResult(overflowError(), dependencies)
+                }
+
+                else -> DataEvaluationResult(result, dependencies)
+            }
+        }
         if (firstInt != null && secondInt != null) {
-            return DataEvaluationResult(
-                evaluatedValue = intCallback.invoke(firstInt.evaluatedValue, secondInt.evaluatedValue),
-                cellDependencies = dependencies
-            )
+            return createResult(intCallback.invoke(firstInt.evaluatedValue, secondInt.evaluatedValue))
         }
 
         val firstDouble = firstArg.tryConvertToDouble()
         val secondDouble = secondArg.tryConvertToDouble()
 
         if (firstDouble != null && secondDouble != null) {
-            return DataEvaluationResult(
-                evaluatedValue = doubleCallback.invoke(
-                    firstDouble.evaluatedValue,
-                    secondDouble.evaluatedValue
-                ),
-                cellDependencies = dependencies
-            )
+            val result = doubleCallback.invoke(firstDouble.evaluatedValue, secondDouble.evaluatedValue)
+            return createResult(if (result is Double && result.isInfinite()) null else result)
         }
 
         return ErrorEvaluationResult(numbersErrorMessage.invoke(operator.symbol), dependencies)

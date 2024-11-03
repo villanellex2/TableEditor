@@ -23,35 +23,35 @@ interface OperatorCell: Operator {
 class OperatorCellLink(
     private val link: Token.Cell.CellLink,
 ): OperatorCell {
-    private val cellPosition by lazy { link.getCellPosition() }
+    val cellPosition by lazy { link.getCellPosition() }
 
     override fun evaluate(context: Context): EvaluationResult<*> {
         if (cellPosition.row < 0 || cellPosition.column > 27 || cellPosition.column < 0) {
-            return ErrorEvaluationResult("Incorrect cell link ${link.name}", emptyList())
+            return ErrorEvaluationResult("Incorrect cell link ${link.name}", emptySet())
         }
 
         val link = context.table.getCell(cellPosition) ?: run {
             return DataEvaluationResult(
                 evaluatedValue = EvaluationResult.Empty,
-                cellDependencies = emptyList()
+                cellDependencies = emptySet()
             )
         }
 
         if (link.evaluating) {
             return ErrorEvaluationResult(
                 evaluatedValue = "Cycle dependencies!",
-                cellDependencies = listOf(cellPosition)
+                cellDependencies = setOf(cellPosition)
             )
         }
 
         return link.evaluationResult?.let {
             DataEvaluationResult(
                 it.evaluatedValue,
-                it.cellDependencies + listOf(cellPosition)
+                it.cellDependencies + setOf(cellPosition)
             )
         } ?: ErrorEvaluationResult(
             evaluatedValue = "Cell with link $cellPosition is not evaluated.",
-            cellDependencies = listOf(cellPosition)
+            cellDependencies = setOf(cellPosition)
         )
     }
 }
@@ -68,11 +68,11 @@ class OperatorCellRange(
         cellDependencies = buildCellDependenciesInBetween(),
     )
 
-    private fun buildCellDependenciesInBetween(): MutableList<CellPointer> {
+    private fun buildCellDependenciesInBetween(): MutableSet<CellPointer> {
         val (row1, column1) = from.getCellPosition()
         val (row2, column2) = to.getCellPosition()
 
-        val dependencies = mutableListOf<CellPointer>()
+        val dependencies = mutableSetOf<CellPointer>()
 
         for (i in min(row1, row2)..max(row1, row2)) {
             for (j in min(column1, column2)..max(column1, column2)) {

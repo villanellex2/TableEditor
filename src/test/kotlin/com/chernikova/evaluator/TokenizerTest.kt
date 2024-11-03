@@ -4,7 +4,6 @@ import com.echernikova.evaluator.core.tokenizing.Token
 import com.echernikova.evaluator.core.tokenizing.Tokenizer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 
 class TokenizerTest {
 
@@ -127,6 +126,17 @@ class TokenizerTest {
         )
 
         input.forEach { (str, expected) -> runComparisonForFail(str, expected) }
+    }
+
+    @Test
+    fun `tokenizer parse functions correctly`() {
+        val input = arrayOf(
+            "SUM(5;6)" to arrayOf(Token.Function("SUM"), Token.Bracket.LeftRound,
+                Token.Literal.Int(5), Token.Function.ArgumentDelimiter, Token.Literal.Int(6),
+                Token.Bracket.RightRound),
+        )
+
+        input.forEach { (str, expected) -> runComparison(str, expected) }
     }
 
     private fun runComparison(string: String, expected: Array<Token>) {

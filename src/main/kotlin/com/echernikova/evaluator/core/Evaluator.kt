@@ -11,7 +11,7 @@ class Evaluator (
     fun evaluate(value: String, tableData: TableData): FinalEvaluationResult<*> {
         if (value.isEmpty()) return DataEvaluationResult(
             evaluatedValue = EvaluationResult.Empty,
-            cellDependencies = emptyList()
+            cellDependencies = emptySet()
         )
 
         if (value.startsWith("=")) {
@@ -24,20 +24,13 @@ class Evaluator (
             }.onFailure { e ->
                 return ErrorEvaluationResult(
                     evaluatedValue = e.message,
-                    cellDependencies = emptyList()
+                    cellDependencies = emptySet()
                 )
             }
 
-            val result = parsingResult.getOrNull()?.evaluate(context)
-            if (result !is FinalEvaluationResult) {
-                return ErrorEvaluationResult(
-                    evaluatedValue = "Can't display cell range.",
-                    cellDependencies = emptyList()
-                )
-            }
-            return result ?: ErrorEvaluationResult(
-                evaluatedValue = "",
-                cellDependencies = emptyList()
+            return (parsingResult.getOrNull()?.evaluate(context) as? FinalEvaluationResult) ?: ErrorEvaluationResult(
+                evaluatedValue = "Can't display cell range.",
+                cellDependencies = emptySet()
             )
         } else {
             return tryToParseAsLiteral(value)
@@ -48,27 +41,27 @@ class Evaluator (
         str.toIntOrNull()?.let {
             return DataEvaluationResult(
                 evaluatedValue = it,
-                cellDependencies = emptyList()
+                cellDependencies = emptySet()
             )
         }
 
         str.toDoubleOrNull()?.let {
             return DataEvaluationResult(
                 evaluatedValue = it,
-                cellDependencies = emptyList()
+                cellDependencies = emptySet()
             )
         }
 
         str.toBooleanStrictOrNull()?.let {
             return DataEvaluationResult(
                 evaluatedValue = it,
-                cellDependencies = emptyList()
+                cellDependencies = emptySet()
             )
         }
 
         return DataEvaluationResult(
             evaluatedValue = str,
-            cellDependencies = emptyList()
+            cellDependencies = emptySet()
         )
     }
 }

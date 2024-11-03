@@ -31,11 +31,11 @@ class OperatorUnary(
                 when (value) {
                     is Int -> DataEvaluationResult(
                         evaluatedValue = -value,
-                        cellDependencies = listOf()
+                        cellDependencies = emptySet()
                     )
                     is Double -> DataEvaluationResult(
                         evaluatedValue = -value,
-                        cellDependencies = listOf()
+                        cellDependencies = emptySet()
                     )
                     else -> error
                 }
