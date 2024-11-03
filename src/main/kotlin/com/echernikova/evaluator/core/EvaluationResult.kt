@@ -1,6 +1,7 @@
 package com.echernikova.evaluator.core
 
 import com.echernikova.editor.table.model.CellPointer
+import com.echernikova.evaluator.operators.OperatorCellLink
 
 sealed class EvaluationResult<T : Any?>(
     open val evaluatedValue: T,
@@ -124,7 +125,7 @@ data class ErrorEvaluationResult(
  * The only not final class, if evaluation ended with cell range, we can't show it on table correctly.
  */
 data class CellRangeEvaluationResult(
-    override val evaluatedValue: List<EvaluationResult<*>>,
+    override val evaluatedValue: List<OperatorCellLink>,
     override val cellDependencies: Set<CellPointer>
-) : EvaluationResult<List<EvaluationResult<*>>>(evaluatedValue, cellDependencies)
+) : EvaluationResult<List<OperatorCellLink>>(evaluatedValue, cellDependencies)
 

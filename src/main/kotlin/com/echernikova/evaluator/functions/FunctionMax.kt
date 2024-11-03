@@ -14,7 +14,7 @@ class FunctionMax : Function {
             cellDependencies = emptySet()
         )
 
-        val numberArgs = args.castToCommonNumberType()
+        val numberArgs = args.castToCommonNumberType(context)
             ?: return ErrorEvaluationResult(
                 evaluatedValue = "Function 'MAX' supports only number arguments.",
                 cellDependencies = dependencies

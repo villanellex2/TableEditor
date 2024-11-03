@@ -14,7 +14,7 @@ class FunctionMin : Function {
             cellDependencies = dependencies
         )
 
-        val numberArgs = args.castToCommonNumberType()
+        val numberArgs = args.castToCommonNumberType(context)
             ?: return ErrorEvaluationResult(
                 evaluatedValue = "Function 'MIN' supports only number arguments.",
                 cellDependencies = dependencies

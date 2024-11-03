@@ -6,24 +6,13 @@ import com.echernikova.evaluator.core.tokenizing.Token
 import kotlin.math.max
 import kotlin.math.min
 
-interface OperatorCell: Operator {
-    fun Token.Cell.CellLink.getCellPosition(): CellPointer {
-        val column = name[0] - 'A' + 1
-        if (column < 0 || column >= 21) throw EvaluationException("Cell link ${name} is incorrect.")
-        val row = name.substring(1, name.length).toIntOrNull()
-            ?: throw EvaluationException("Cell link ${name} is incorrect.")
-
-        return CellPointer(row, column)
-    }
-}
+interface OperatorCell: Operator
 
 /**
  * Evaluation of other cell value, such as A2, C12 etc.
  */
-class OperatorCellLink(
-    private val link: Token.Cell.CellLink,
-): OperatorCell {
-    val cellPosition by lazy { link.getCellPosition() }
+class OperatorCellLink(val cellPosition: CellPointer): OperatorCell {
+    constructor(link: Token.Cell.CellLink) : this(link.getCellPosition())
 
     override fun evaluate(context: Context): EvaluationResult<*> {
         return getCellEvaluationResult(context, cellPosition)
@@ -40,7 +29,7 @@ class OperatorCellRange(
     override fun evaluate(context: Context): EvaluationResult<*> {
         val cellPointers = buildCellDependenciesInBetween()
 
-        val evaluatedValues = cellPointers.map { getCellEvaluationResult(context, it) }
+        val evaluatedValues = cellPointers.map { OperatorCellLink(it) }
 
         return CellRangeEvaluationResult(
             evaluatedValue = evaluatedValues,
@@ -61,6 +50,15 @@ class OperatorCellRange(
         }
         return dependencies
     }
+}
+
+private fun Token.Cell.CellLink.getCellPosition(): CellPointer {
+    val column = name[0] - 'A' + 1
+    if (column < 0 || column >= 21) throw EvaluationException("Cell link ${name} is incorrect.")
+    val row = name.substring(1, name.length).toIntOrNull()
+        ?: throw EvaluationException("Cell link ${name} is incorrect.")
+
+    return CellPointer(row, column)
 }
 
 private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer): EvaluationResult<*> {

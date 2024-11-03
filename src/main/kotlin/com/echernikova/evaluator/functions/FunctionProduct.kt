@@ -14,7 +14,7 @@ class FunctionProduct : Function {
             cellDependencies = dependencies
         )
 
-        val numberArgs = args.castToCommonNumberType()
+        val numberArgs = args.castToCommonNumberType(context)
             ?: return ErrorEvaluationResult(
                 evaluatedValue = "Function 'PRODUCT' supports only number arguments.",
                 cellDependencies = dependencies
@@ -27,6 +27,8 @@ class FunctionProduct : Function {
                     res *= it
                     if (res !in Int.MIN_VALUE..Int.MAX_VALUE) return ErrorEvaluationResult("Overflow!", dependencies)
                 }
+
+                return DataEvaluationResult(res, dependencies)
             }
             is Double -> {
                 var res = 1.0
@@ -34,6 +36,8 @@ class FunctionProduct : Function {
                     res *= it
                     if (res.isInfinite()) return ErrorEvaluationResult("Overflow!", dependencies)
                 }
+
+                return DataEvaluationResult(res, dependencies)
             }
         }
 

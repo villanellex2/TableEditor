@@ -1,6 +1,7 @@
 package com.echernikova.evaluator.functions
 
 import com.echernikova.evaluator.core.*
+import com.echernikova.evaluator.operators.OperatorCellLink
 
 interface Function {
     val name: String
@@ -16,17 +17,16 @@ fun List<EvaluationResult<*>?>.findError(): ErrorEvaluationResult? {
  * Returns a list of arguments cast to common number type.
  * Order is not guaranteed.
  */
-fun List<EvaluationResult<*>?>.castToCommonNumberType(): List<Number>? {
+fun List<EvaluationResult<*>?>.castToCommonNumberType(context: Context): List<Number>? {
     val (cells, notCells) = partition { it is CellRangeEvaluationResult  }
-    val args: List<EvaluationResult<*>?> = (notCells + cells.map { it?.evaluatedValue as List<EvaluationResult<*>?> }.flatten())
+    val cellArgs = cells.map { (it?.evaluatedValue as List<OperatorCellLink>) }.flatten().map { it.evaluate(context) }
+    val args: List<EvaluationResult<*>?> = notCells + cellArgs
 
-    if (args.any {
-            (it?.evaluatedValue !is Int &&
+    if (args.any { (it?.evaluatedValue !is Int &&
             it?.evaluatedValue !is Double &&
             it?.evaluatedValue != EvaluationResult.Empty) ||
             it.evaluatedValue == null ||
-            it !is DataEvaluationResult
-        }
+            it !is DataEvaluationResult }
     ) {
         return null
     }
