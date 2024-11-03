@@ -87,5 +87,7 @@ class EvaluatorTest {
         assertEquals(11.0, underTest.evaluate("= 19 - MAX(5;6;A5)", tableData).evaluatedValue)
         assertEquals(21.0, underTest.evaluate("= 15 + AVERAGE(4;6;A5)", tableData).evaluatedValue)
         assertEquals(5.0, underTest.evaluate("=IF(15>17; 2; 5.0)", tableData).evaluatedValue)
+
+        assertEquals(14.0 / 3, underTest.evaluate("=AVERAGE(A3:A5)", tableData).evaluatedValue)
     }
 }
