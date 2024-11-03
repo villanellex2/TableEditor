@@ -3,8 +3,8 @@ package com.echernikova.evaluator.operators
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.evaluator.core.*
 import com.echernikova.evaluator.core.tokenizing.Token
-import kotlin.math.max
-import kotlin.math.min
+import com.echernikova.fileopening.FileOpeningFrameViewModel
+import org.koin.java.KoinJavaComponent.getKoin
 
 interface OperatorCell: Operator
 
@@ -12,7 +12,7 @@ interface OperatorCell: Operator
  * Evaluation of other cell value, such as A2, C12 etc.
  */
 class OperatorCellLink(val cellPosition: CellPointer): OperatorCell {
-    constructor(link: Token.Cell.CellLink) : this(link.getCellPosition())
+    constructor(link: Token.Cell.CellLink) : this(CellPointer.fromString(link.name))
 
     override fun evaluate(context: Context): EvaluationResult<*> {
         return getCellEvaluationResult(context, cellPosition)
@@ -27,70 +27,30 @@ class OperatorCellRange(
     private val to: Token.Cell.CellLink,
 ): OperatorCell {
     override fun evaluate(context: Context): EvaluationResult<*> {
-        val cellPointers = buildCellDependenciesInBetween()
+        val cellPointers = CellPointer.buildCellDependenciesInBetween(
+            CellPointer.fromString(from.name), CellPointer.fromString(to.name)
+        )
 
         val evaluatedValues = cellPointers.map { OperatorCellLink(it) }
 
         return CellRangeEvaluationResult(
             evaluatedValue = evaluatedValues,
-            cellDependencies = buildCellDependenciesInBetween(),
+            cellDependencies = cellPointers,
         )
     }
-
-    private fun buildCellDependenciesInBetween(): MutableSet<CellPointer> {
-        val (row1, column1) = from.getCellPosition()
-        val (row2, column2) = to.getCellPosition()
-
-        val dependencies = mutableSetOf<CellPointer>()
-
-        for (i in min(row1, row2)..max(row1, row2)) {
-            for (j in min(column1, column2)..max(column1, column2)) {
-                dependencies.add(CellPointer(i, j))
-            }
-        }
-        return dependencies
-    }
 }
 
-private fun Token.Cell.CellLink.getCellPosition(): CellPointer {
-    val column = name[0] - 'A' + 1
-    if (column < 0 || column >= 21) throw EvaluationException("Cell link ${name} is incorrect.")
-    val row = name.substring(1, name.length).toIntOrNull()
-        ?: throw EvaluationException("Cell link ${name} is incorrect.")
-
-    return CellPointer(row, column)
-}
 
 private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer): EvaluationResult<*> {
     if (cellPointer.row < 0 || cellPointer.column > 27 || cellPointer.column < 0) {
         return ErrorEvaluationResult("Incorrect cell link", emptySet())
     }
 
-    val link = context.table.getOrCreateCell(cellPointer) ?: run {
-        return DataEvaluationResult(
-            evaluatedValue = EvaluationResult.Empty,
-            cellDependencies = setOf(cellPointer)
-        )
-    }
+    val link = context.table.getOrCreateCell(cellPointer)
+    if (link.evaluationResult == null) link.evaluate(getKoin().get<Evaluator>(), context.table)
 
-    if (link.evaluating) {
-        return ErrorEvaluationResult(
-            evaluatedValue = "Cycle dependencies!",
-            cellDependencies = setOf(cellPointer)
-        )
-    }
-
-    if (link.evaluationResult == null) {
-        link.evaluate()
-    }
-
-    return link.evaluationResult?.let {
-        DataEvaluationResult(
-            it.evaluatedValue,
-            it.cellDependencies + setOf(cellPointer)
-        )
-    } ?: ErrorEvaluationResult(
-        evaluatedValue = "Cell with link $cellPointer is not evaluated.",
+    return link.evaluationResult?.copyWithDependencies(setOf(cellPointer)) ?: ErrorEvaluationResult(
+        evaluatedValue = "Error on evaluation $cellPointer.",
         cellDependencies = setOf(cellPointer)
     )
 }

@@ -1,6 +1,5 @@
 package com.echernikova.editor.table
 
-import org.koin.mp.KoinPlatform.getKoin
 import javax.swing.JTable
 
 private const val DEFAULT_CELL_MIN_WIDTH = 30
@@ -23,6 +22,6 @@ class TableView(
         setShowGrid(true)
         gridColor = TableTheme.gridColor
 
-        setDefaultRenderer(Any::class.java, TableCellRenderer(tableModel.tableData))
+        setDefaultRenderer(Any::class.java, TableCellRenderer(tableModel.tableDataController))
     }
 }

@@ -2,7 +2,7 @@ package com.echernikova.di
 
 import com.echernikova.editor.EditorViewModel
 import com.echernikova.editor.table.TableViewModel
-import com.echernikova.editor.table.model.TableData
+import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.evaluator.core.Evaluator
 import com.echernikova.evaluator.functions.*
 import com.echernikova.evaluator.functions.Function
@@ -23,7 +23,7 @@ val functionsModule = module {
 }
 
 val evaluatorModule = module {
-    factory { TableData(get()) }
+    factory { TableDataController(get()) }
     single { Evaluator(getAll<Function>().associateBy { it.name }) }
 }
 
@@ -34,7 +34,8 @@ val appModule = module {
     factory { (file: File, initialData: Array<Array<Any?>>) ->
         EditorViewModel(
             file,
-            get { parametersOf(initialData, get()) })
+            get { parametersOf(initialData, get()) }
+        )
     }
 }
 

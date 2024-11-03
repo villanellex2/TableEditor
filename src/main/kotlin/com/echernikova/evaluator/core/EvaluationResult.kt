@@ -33,21 +33,8 @@ sealed class EvaluationResult<T : Any?>(
     fun tryConvertToBoolean(): EvaluationResult<Boolean>? {
         return when (evaluatedValue) {
             is Boolean -> this as EvaluationResult<Boolean>
-
-            Empty -> {
-                DataEvaluationResult(
-                    evaluatedValue = false,
-                    cellDependencies = cellDependencies
-                )
-            }
-
-            is Int -> {
-                DataEvaluationResult(
-                    evaluatedValue = (evaluatedValue as Int == 0),
-                    cellDependencies = cellDependencies
-                )
-            }
-
+            Empty -> DataEvaluationResult(false, cellDependencies)
+            is Int -> DataEvaluationResult((evaluatedValue as Int == 0), cellDependencies)
             else -> null
         }
     }
@@ -55,14 +42,7 @@ sealed class EvaluationResult<T : Any?>(
     fun tryConvertToInt(): EvaluationResult<Int>? {
         return when (evaluatedValue) {
             is Int -> this as EvaluationResult<Int>
-
-            Empty -> {
-                DataEvaluationResult(
-                    evaluatedValue = 0,
-                    cellDependencies = cellDependencies
-                )
-            }
-
+            Empty -> DataEvaluationResult(0, cellDependencies)
             else -> null
         }
     }
@@ -70,35 +50,19 @@ sealed class EvaluationResult<T : Any?>(
     fun tryConvertToDouble(): EvaluationResult<Double>? {
         return when (evaluatedValue) {
             is Double -> this as EvaluationResult<Double>
-
-            is Int -> DataEvaluationResult(
-                evaluatedValue = (evaluatedValue as Int).toDouble(),
-                cellDependencies = cellDependencies
-            )
-
-            Empty -> {
-                DataEvaluationResult(
-                    evaluatedValue = 0.0,
-                    cellDependencies = cellDependencies
-                )
-            }
-
+            is Int -> DataEvaluationResult((evaluatedValue as Int).toDouble(), cellDependencies)
+            Empty -> DataEvaluationResult(0.0, cellDependencies)
             else -> null
         }
     }
 
     fun tryConvertToString(): EvaluationResult<String>? {
         return when (evaluatedValue) {
+            is ErrorEvaluationResult -> return null
+            is CellRangeEvaluationResult -> return null
             is String -> return this as EvaluationResult<String>
-
-            Empty -> {
-                DataEvaluationResult(
-                    evaluatedValue = "",
-                    cellDependencies = cellDependencies
-                )
-            }
-
-            else -> null
+            Empty -> DataEvaluationResult("", cellDependencies)
+            else -> DataEvaluationResult(evaluatedValue.toString(), cellDependencies)
         }
     }
 }

@@ -1,23 +1,22 @@
 package com.echernikova.editor.table
 
 import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.editor.table.model.TableData
-import com.echernikova.evaluator.core.Evaluator
+import com.echernikova.editor.table.model.TableDataController
 import javax.swing.table.DefaultTableModel
 
 private const val DEFAULT_PAGE_SIZE = 100
 
 class TableViewModel(
     initialData: Array<Array<Any?>>?,
-    val tableData: TableData,
+    val tableDataController: TableDataController,
 ): DefaultTableModel(initialData, getColumns()) {
 
     private var isLoading = false
     private val lock = Any()
 
     init {
-        tableData.initData(dataVector)
-        tableData.setOnDataExpiredCallback { cellPointer: CellPointer ->
+        tableDataController.initData(dataVector)
+        tableDataController.dataExpiredCallback = { cellPointer: CellPointer ->
             fireTableCellUpdated(cellPointer.row, cellPointer.column)
         }
 
@@ -26,12 +25,12 @@ class TableViewModel(
             if (event.lastRow >= rowCount || event.column >= columnCount) return@addTableModelListener
 
                 val cellValue = getValueAt(event.lastRow, event.column)?.toString()
-                tableData.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
+                tableDataController.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
         }
     }
 
     override fun addRow(rowData: Array<Any?>) {
-        tableData.addRow(rowCount, rowData)
+        tableDataController.addRow(rowCount, rowData)
         super.addRow(rowData)
     }
 

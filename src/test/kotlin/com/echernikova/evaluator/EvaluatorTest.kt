@@ -1,7 +1,7 @@
-package com.chernikova.evaluator
+package com.echernikova.evaluator
 
 import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.editor.table.model.TableData
+import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.evaluator.core.Evaluator
 import com.echernikova.evaluator.core.tokenizing.Token
 import com.echernikova.evaluator.functions.*
@@ -25,22 +25,22 @@ class EvaluatorTest {
     ).associateBy { it.name }
 
     private val underTest = Evaluator(supportedFunc)
-    private val tableData = TableData(evaluator = underTest)
+    private val tableDataController = TableDataController(evaluator = underTest)
 
     init {
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition, "false")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A2")).cellPosition, "true")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition, "5")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition, "1.0")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition, "= 3.0 + 5")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition, "false")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A2")).cellPosition, "true")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition, "5")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition, "1.0")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition, "= 3.0 + 5")
 
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition, "Dog")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition, "Cat")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition, "Tiger")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition, "Dog")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition, "Cat")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition, "Tiger")
 
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition, "17kg")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition, "2.5kg")
-        tableData.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition, "80kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition, "17kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition, "2.5kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition, "80kg")
     }
 
     companion object {
@@ -105,7 +105,7 @@ class EvaluatorTest {
     @ParameterizedTest(name = "Test case {0} = {1}, with dependencies = {2}")
     @MethodSource("testCases")
     fun `Evaluator evaluate cases`(expression: String, expected: Any, cellLinks: Set<CellPointer>) {
-        val output = underTest.evaluate(expression, tableData)
+        val output = underTest.evaluate(expression, tableDataController)
 
         assertEquals(expected, output.evaluatedValue)
         assertEquals(cellLinks, output.cellDependencies)

@@ -20,6 +20,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.3.1")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.mockito:mockito-inline:2.8.47")
 }
 
 tasks.test {

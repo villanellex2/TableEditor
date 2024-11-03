@@ -1,4 +1,4 @@
-package com.chernikova.evaluator
+package com.echernikova.evaluator
 
 import com.echernikova.evaluator.core.tokenizing.Token
 import com.echernikova.evaluator.core.tokenizing.Tokenizer
