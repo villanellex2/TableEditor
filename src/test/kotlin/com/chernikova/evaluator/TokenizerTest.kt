@@ -7,10 +7,11 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
+import kotlin.test.assertFails
 
 class TokenizerTest {
 
-    @ParameterizedTest(name = "tokenizer parses literal: {0}")
+    @ParameterizedTest(name = "tokenizer parses input: {0}")
     @MethodSource("correct")
     fun `tokenizer correctly works with correct cases`(input: String, expected: Array<Token>) {
         runComparison(input, expected)
@@ -29,12 +30,8 @@ class TokenizerTest {
     }
 
     private fun runComparisonForFail(string: String, errorMessage: String) {
-        kotlin.runCatching {
+        assertFails(errorMessage) {
             Tokenizer.tokenize(string)
-        }.onFailure { exception ->
-            assertEquals(errorMessage, exception.message)
-        }.onSuccess {
-            throw AssertionError("Expected exception '$errorMessage' on tokenizing '$string'")
         }
     }
 
