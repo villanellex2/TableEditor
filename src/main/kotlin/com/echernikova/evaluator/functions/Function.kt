@@ -12,8 +12,15 @@ fun List<EvaluationResult<*>?>.findError(): ErrorEvaluationResult? {
     return (firstOrNull { it is ErrorEvaluationResult } as? ErrorEvaluationResult)
 }
 
+/**
+ * Returns a list of arguments cast to common number type.
+ * Order is not guaranteed.
+ */
 fun List<EvaluationResult<*>?>.castToCommonNumberType(): List<Number>? {
-    if (any {
+    val (cells, notCells) = partition { it is CellRangeEvaluationResult  }
+    val args: List<EvaluationResult<*>?> = (notCells + cells.map { it?.evaluatedValue as List<EvaluationResult<*>?> }.flatten())
+
+    if (args.any {
             (it?.evaluatedValue !is Int &&
             it?.evaluatedValue !is Double &&
             it?.evaluatedValue != EvaluationResult.Empty) ||
@@ -24,11 +31,11 @@ fun List<EvaluationResult<*>?>.castToCommonNumberType(): List<Number>? {
         return null
     }
 
-    return if (any { it?.evaluatedValue is Double }) {
-        mapNotNull { it?.tryConvertToDouble()?.evaluatedValue }
+    return if (args.any { it?.evaluatedValue is Double }) {
+        args.mapNotNull { it?.tryConvertToDouble()?.evaluatedValue }
     } else {
-        mapNotNull { it?.tryConvertToInt()?.evaluatedValue }
+        args.mapNotNull { it?.tryConvertToInt()?.evaluatedValue }
     }
 }
 
-fun List<EvaluationResult<*>?>.getDependencies() = map { it?.cellDependencies }.filterNotNull().flatten().toSet()
+fun List<EvaluationResult<*>?>.getDependencies() = mapNotNull { it?.cellDependencies }.flatten().toSet()

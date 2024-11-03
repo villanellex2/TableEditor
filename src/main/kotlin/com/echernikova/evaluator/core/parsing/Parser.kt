@@ -8,7 +8,7 @@ import com.echernikova.evaluator.operators.*
 object Parser {
 
     fun parse(tokens: List<Token>): Operator {
-        if (tokens.isEmpty()) throw EvaluationException("Expression expected")
+        if (tokens.isEmpty()) throw EvaluationException("Empty evaluable expression")
 
         val state = ParsingState(tokens)
         val expression = startParsing(state)
@@ -78,10 +78,12 @@ object Parser {
 
     private fun parseCellLink(cell: Token.Cell.CellLink, state: ParsingState): Operator {
         state.forward()
-        if (state.next() !is Token.Cell.CellDelimiter)return OperatorCellLink(cell)
-        state.forward()
+        if (state.current() !is Token.Cell.CellDelimiter) {
+            return OperatorCellLink(cell)
+        }
 
-        val nextCell = state.next()
+        state.forward()
+        val nextCell = state.current()
         if (nextCell !is Token.Cell.CellLink) {
             throw EvaluationException("Incorrect cell link '${cell.name}:'. Cell link expected after ':'.")
         }
@@ -90,10 +92,10 @@ object Parser {
     }
 
     private fun parseFunction(token: Token.Function, state: ParsingState): Operator {
-        if (state.next() != Token.Bracket.LeftRound) {
+        state.forward()
+        if (state.current() != Token.Bracket.LeftRound) {
             throw EvaluationException("'(' expected after function call")
         }
-        state.forward()
         state.forward()
         val arguments = mutableListOf<Operator>()
         while (!state.isAtEnd() && state.current() != Token.Bracket.RightRound) {

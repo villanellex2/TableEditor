@@ -9,8 +9,8 @@ class FunctionMin : Function {
         args.findError()?.let { return it }
         val dependencies = args.getDependencies()
 
-        if (args.size < 2) return ErrorEvaluationResult(
-            evaluatedValue = "Function 'MIN' should have at least 2 arguments.",
+        if (args.size < 1) return ErrorEvaluationResult(
+            evaluatedValue = "Function 'MIN' should have at least 1 argument.",
             cellDependencies = dependencies
         )
 

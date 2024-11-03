@@ -26,33 +26,7 @@ class OperatorCellLink(
     val cellPosition by lazy { link.getCellPosition() }
 
     override fun evaluate(context: Context): EvaluationResult<*> {
-        if (cellPosition.row < 0 || cellPosition.column > 27 || cellPosition.column < 0) {
-            return ErrorEvaluationResult("Incorrect cell link ${link.name}", emptySet())
-        }
-
-        val link = context.table.getCell(cellPosition) ?: run {
-            return DataEvaluationResult(
-                evaluatedValue = EvaluationResult.Empty,
-                cellDependencies = emptySet()
-            )
-        }
-
-        if (link.evaluating) {
-            return ErrorEvaluationResult(
-                evaluatedValue = "Cycle dependencies!",
-                cellDependencies = setOf(cellPosition)
-            )
-        }
-
-        return link.evaluationResult?.let {
-            DataEvaluationResult(
-                it.evaluatedValue,
-                it.cellDependencies + setOf(cellPosition)
-            )
-        } ?: ErrorEvaluationResult(
-            evaluatedValue = "Cell with link $cellPosition is not evaluated.",
-            cellDependencies = setOf(cellPosition)
-        )
+        return getCellEvaluationResult(context, cellPosition)
     }
 }
 
@@ -63,10 +37,16 @@ class OperatorCellRange(
     private val from: Token.Cell.CellLink,
     private val to: Token.Cell.CellLink,
 ): OperatorCell {
-    override fun evaluate(context: Context): EvaluationResult<*> = CellRangeEvaluationResult(
-        evaluatedValue = this,
-        cellDependencies = buildCellDependenciesInBetween(),
-    )
+    override fun evaluate(context: Context): EvaluationResult<*> {
+        val cellPointers = buildCellDependenciesInBetween()
+
+        val evaluatedValues = cellPointers.map { getCellEvaluationResult(context, it) }
+
+        return CellRangeEvaluationResult(
+            evaluatedValue = evaluatedValues,
+            cellDependencies = buildCellDependenciesInBetween(),
+        )
+    }
 
     private fun buildCellDependenciesInBetween(): MutableSet<CellPointer> {
         val (row1, column1) = from.getCellPosition()
@@ -81,4 +61,38 @@ class OperatorCellRange(
         }
         return dependencies
     }
+}
+
+private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer): EvaluationResult<*> {
+    if (cellPointer.row < 0 || cellPointer.column > 27 || cellPointer.column < 0) {
+        return ErrorEvaluationResult("Incorrect cell link", emptySet())
+    }
+
+    val link = context.table.getOrCreateCell(cellPointer) ?: run {
+        return DataEvaluationResult(
+            evaluatedValue = EvaluationResult.Empty,
+            cellDependencies = setOf(cellPointer)
+        )
+    }
+
+    if (link.evaluating) {
+        return ErrorEvaluationResult(
+            evaluatedValue = "Cycle dependencies!",
+            cellDependencies = setOf(cellPointer)
+        )
+    }
+
+    if (link.evaluationResult == null) {
+        link.evaluate()
+    }
+
+    return link.evaluationResult?.let {
+        DataEvaluationResult(
+            it.evaluatedValue,
+            it.cellDependencies + setOf(cellPointer)
+        )
+    } ?: ErrorEvaluationResult(
+        evaluatedValue = "Cell with link $cellPointer is not evaluated.",
+        cellDependencies = setOf(cellPointer)
+    )
 }

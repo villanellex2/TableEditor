@@ -9,8 +9,8 @@ class FunctionProduct : Function {
         args.findError()?.let { return it }
         val dependencies = args.getDependencies()
 
-        if (args.size < 2) return ErrorEvaluationResult(
-            evaluatedValue = "Function 'PRODUCT' should have at least 2 arguments.",
+        if (args.isEmpty()) return ErrorEvaluationResult(
+            evaluatedValue = "Function 'PRODUCT' should have at least 1 argument.",
             cellDependencies = dependencies
         )
 
