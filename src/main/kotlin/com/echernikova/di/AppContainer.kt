@@ -5,22 +5,12 @@ import com.echernikova.editor.table.TableViewModel
 import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.evaluator.core.Evaluator
 import com.echernikova.evaluator.functions.*
-import com.echernikova.evaluator.functions.Function
 import com.echernikova.fileopening.FileOpeningFrameViewModel
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.context.GlobalContext.stopKoin
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 import java.io.File
-
-val functionsModule = module {
-    single<Function> { FunctionSum() }
-    single<Function> { FunctionAverage() }
-    single<Function> { FunctionProduct() }
-    single<Function> { FunctionMax() }
-    single<Function> { FunctionMin() }
-    single<Function> { FunctionIf() }
-}
 
 val evaluatorModule = module {
     factory { TableDataController(get()) }
@@ -51,7 +41,7 @@ val appModule = module {
 
 fun startDependencyInjection() {
     startKoin {
-        modules(functionsModule, evaluatorModule, appModule)
+        modules(evaluatorModule, appModule)
     }
 }
 

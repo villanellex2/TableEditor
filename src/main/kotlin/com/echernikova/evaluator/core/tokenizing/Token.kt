@@ -43,6 +43,8 @@ sealed interface Token {
     }
 
     data class Function(val name: String) : Token {
-        data object ArgumentDelimiter : Token
+        enum class ArgumentDelimiter: Token {
+            Comma
+        }
     }
 }

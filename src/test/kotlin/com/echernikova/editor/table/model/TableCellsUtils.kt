@@ -10,8 +10,8 @@ val underTest = TableDataController(evaluator = evaluator)
 fun fillTable() {
     underTest.apply {
         // A1 <- A2 <- A3
-        setValueToCell(CellPointer.fromString("A0")!!, "0")
-        setValueToCell(CellPointer.fromString("A1")!!, "=A0")
+        setValueToCell(CellPointer.fromString("A3")!!, "0")
+        setValueToCell(CellPointer.fromString("A1")!!, "=A3")
         setValueToCell(CellPointer.fromString("A2")!!, "=A1")
 
         // B1 <- B2 <-> B3 | Cycle!
@@ -29,7 +29,7 @@ fun fillTable() {
     }
 }
 
-val A0 = underTest.getOrCreateCell(CellPointer.fromString("A0")!!)
+val A3 = underTest.getOrCreateCell(CellPointer.fromString("A3")!!)
 val A1 = underTest.getOrCreateCell(CellPointer.fromString("A1")!!)
 val A2 = underTest.getOrCreateCell(CellPointer.fromString("A2")!!)
 

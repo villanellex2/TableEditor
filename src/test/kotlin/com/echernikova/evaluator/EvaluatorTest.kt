@@ -81,13 +81,13 @@ class EvaluatorTest {
             Arguments.of("=16 / (2 + 2)", 4, emptySet<CellPointer>()),
             Arguments.of("=(1.0 / 2) + 5", 5.5, emptySet<CellPointer>()),
 
-            Arguments.of("=SUM(5;6)", 11, emptySet<CellPointer>()),
-            Arguments.of("=SUM(5;6;A5)", 19.0, A5),
-            Arguments.of("= 19 - SUM(5;6;A5)", 0.0, A5),
-            Arguments.of("=MIN(5;6;A5)", 5.0, A5),
-            Arguments.of("= 19 - MAX(5;6;A5)", 11.0, A5),
-            Arguments.of("= 15 + AVERAGE(4;6;A5)", 21.0, A5),
-            Arguments.of("=IF(15>17; 2; 5.0)", 5.0, emptySet<CellPointer>()),
+            Arguments.of("=SUM(5,6)", 11, emptySet<CellPointer>()),
+            Arguments.of("=SUM(5,6,A5)", 19.0, A5),
+            Arguments.of("= 19 - SUM(5,6,A5)", 0.0, A5),
+            Arguments.of("=MIN(5,6,A5)", 5.0, A5),
+            Arguments.of("= 19 - MAX(5,6,A5)", 11.0, A5),
+            Arguments.of("= 15 + AVERAGE(4,6,A5)", 21.0, A5),
+            Arguments.of("=IF(15>17, 2, 5.0)", 5.0, emptySet<CellPointer>()),
 
             Arguments.of("=AVERAGE(A3:A5)", 14.0 / 3, A3A5),
             Arguments.of("=SUM(A4:A5)", 9.0, A4A5),
@@ -95,10 +95,10 @@ class EvaluatorTest {
             Arguments.of("=MIN(A3:A5)", 1.0, A3A5),
             Arguments.of("=MAX(A3:A5)", 8.0, A3A5),
 
-            Arguments.of("=VLOOKUP(\"Tiger\";C1:D3;2)", "80kg", animalWeightsTable),
-            Arguments.of("=VLOOKUP(\"Cat\";C1:D3;2)", "2.5kg", animalWeightsTable),
-            Arguments.of("=VLOOKUP(\"Dog\";C1:D3;2)", "17kg", animalWeightsTable),
-            Arguments.of("=VLOOKUP(\"17kg\";C1:D3;1)", "Dog", animalWeightsTable),
+            Arguments.of("=VLOOKUP(\"Tiger\",C1:D3,2)", "80kg", animalWeightsTable),
+            Arguments.of("=VLOOKUP(\"Cat\",C1:D3,2)", "2.5kg", animalWeightsTable),
+            Arguments.of("=VLOOKUP(\"Dog\",C1:D3,2)", "17kg", animalWeightsTable),
+            Arguments.of("=VLOOKUP(\"17kg\",C1:D3,1)", "Dog", animalWeightsTable),
         )
     }
 

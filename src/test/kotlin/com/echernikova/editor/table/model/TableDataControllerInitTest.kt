@@ -20,34 +20,34 @@ class TableDataControllerInitTest {
            assertEquals(i.toString(), underTest.getCell(CellPointer(0, i))?.rawValue)
         }
         for (i in 0..9) {
-            assertEquals("=${'A' + i}0", underTest.getCell(CellPointer(1, i))?.rawValue)
+            assertEquals("=${'A' + i}1", underTest.getCell(CellPointer(1, i))?.rawValue)
         }
     }
 
     @Test
     fun `TableData updates value in table and tries to update dependent cell`() {
         initData()
-        verify(evaluator).evaluate("=${'A' + 1}0", underTest)
+        verify(evaluator).evaluate("=${'A' + 1}1", underTest)
 
         val updatingCell = CellPointer(0, 2)
 
         underTest.setValueToCell(updatingCell, UPDATED_VALUE.toString())
 
         assertEquals(UPDATED_VALUE.toString(), underTest.getCell(updatingCell)?.rawValue)
-        verify(evaluator, times(2)).evaluate("=${'A' + 1}0", underTest)
+        verify(evaluator, times(2)).evaluate("=${'A' + 1}1", underTest)
         assertEquals(
             UPDATED_VALUE,
-            underTest.getCell(CellPointer.fromString("${'A' + 1}0")!!)?.getEvaluationResult()?.evaluatedValue
+            underTest.getCell(CellPointer.fromString("${'A' + 1}1")!!)?.getEvaluationResult()?.evaluatedValue
         )
     }
 
     @Test
     fun `TableData evaluates values only ones on init`() {
         initData()
-        verify(evaluator, times(1)).evaluate("=${'A' + 1}0", underTest)
-        verify(evaluator, times(1)).evaluate("=${'A' + 2}0", underTest)
-        verify(evaluator, times(1)).evaluate("=${'A' + 3}0", underTest)
-        verify(evaluator, times(1)).evaluate("=${'A' + 4}0", underTest)
+        verify(evaluator, times(1)).evaluate("=${'A' + 1}1", underTest)
+        verify(evaluator, times(1)).evaluate("=${'A' + 2}1", underTest)
+        verify(evaluator, times(1)).evaluate("=${'A' + 3}1", underTest)
+        verify(evaluator, times(1)).evaluate("=${'A' + 4}1", underTest)
 
         verify(evaluator, times(1)).evaluate("1", underTest)
         verify(evaluator, times(1)).evaluate("2", underTest)
@@ -62,7 +62,7 @@ class TableDataControllerInitTest {
         }
         val row1 = Vector<Any?>()
         for (i in 0..9) {
-            row1.add("=${'A' + i}0")
+            row1.add("=${'A' + i}1")
         }
         val vector = Vector<Vector<Any?>>()
         vector.add(row0)

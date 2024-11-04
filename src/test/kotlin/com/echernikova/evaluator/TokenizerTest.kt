@@ -81,7 +81,7 @@ class TokenizerTest {
                 arrayOf(
                     Token.Function("SUM"), Token.Bracket.LeftRound,
                     Token.Cell.CellLink("C1"), Token.Cell.CellDelimiter, Token.Cell.CellLink("C6"),
-                    Token.Function.ArgumentDelimiter, Token.Literal.Int(5), Token.Bracket.RightRound
+                    Token.Function.ArgumentDelimiter.Comma, Token.Literal.Int(5), Token.Bracket.RightRound
                 ),
             ),
         )

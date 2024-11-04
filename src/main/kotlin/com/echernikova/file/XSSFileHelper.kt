@@ -7,33 +7,35 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import javax.swing.JTable
 
-class XSSFileHelper: FileHelper {
+class XSSFileHelper : FileHelper {
     override fun writeTable(table: List<Array<String?>>, filePath: String): Throwable? {
         val workbook: Workbook = XSSFWorkbook()
         val sheet: Sheet = workbook.createSheet("Table Data")
 
-        if (table.isNotEmpty()) {
-            val columnCount = table[0].size
+        runCatching {
+            if (table.isNotEmpty()) {
+                val columnCount = table[0].size
 
-            for (row in table.indices) {
-                val rowIndex = table[row][0]?.toInt() ?: row
-                val excelRow = sheet.createRow(rowIndex)
+                for (row in table.indices) {
+                    val rowIndex = table[row][0]?.toInt() ?: row
+                    val excelRow = sheet.createRow(rowIndex)
 
-                for (i in 1 until columnCount) {
-                    table[row][i]?.let { column ->
-                        val cell = excelRow.createCell(i - 1)
-                        cell.setCellValue(column)
+                    for (i in 1 until columnCount) {
+                        table[row][i]?.let { column ->
+                            val cell = excelRow.createCell(i - 1)
+                            if (column.startsWith("=")) {
+                                cell.cellFormula = column.substring(1, column.length)
+                            } else {
+                                cell.setCellValue(column)
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        runCatching {
-            FileOutputStream(filePath).use { fileOut ->
-                workbook.write(fileOut)
-            }
+            FileOutputStream(filePath).use { fileOut -> workbook.write(fileOut) }
+
         }.onFailure { exception ->
             workbook.close()
             return exception
@@ -83,7 +85,7 @@ class XSSFileHelper: FileHelper {
                     }
 
                     CellType.BOOLEAN -> cell.booleanCellValue.toString()
-                    CellType.FORMULA -> cell.cellFormula
+                    CellType.FORMULA -> "=" + cell.cellFormula
                     else -> ""
                 }
                 currentColumn++

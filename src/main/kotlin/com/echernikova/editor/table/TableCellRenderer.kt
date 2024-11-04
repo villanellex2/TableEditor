@@ -4,8 +4,6 @@ import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.evaluator.core.*
 import java.awt.Component
-import java.awt.Point
-import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.border.EmptyBorder
@@ -30,14 +28,14 @@ class TableCellRenderer(
 
         if (column == 0) {
             setNormalValue(null)
-            cell.text = row.toString()
+            cell.text = (row + 1).toString()
             cell.horizontalAlignment = LEFT
             return cell
         }
 
         val cellEvaluationData = tableDataController.getCell(CellPointer(row, column)) ?: return cell
         val result = cellEvaluationData.getEvaluationResult()
-        val value = result.evaluatedValue
+        val evaluatedResult = result.evaluatedValue
 
         when (result) {
             is ErrorEvaluationResult -> {
@@ -48,7 +46,7 @@ class TableCellRenderer(
             }
 
             is DataEvaluationResult -> {
-                when (value) {
+                when (evaluatedResult) {
                     is Int, is String -> {
                         cell.horizontalAlignment = RIGHT
                         setNormalValue(result)

@@ -14,7 +14,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("stdlib"))
     implementation("io.insert-koin:koin-core:3.4.0")
-    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.5")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
     testImplementation("org.mockito:mockito-core:5.3.1")
@@ -26,6 +26,7 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(21)
 }

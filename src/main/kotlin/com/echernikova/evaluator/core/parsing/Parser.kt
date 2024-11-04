@@ -8,12 +8,12 @@ import com.echernikova.evaluator.operators.*
 object Parser {
 
     fun parse(tokens: List<Token>): Operator {
-        if (tokens.isEmpty()) throw EvaluationException("Empty evaluable expression")
+        if (tokens.isEmpty()) throw EvaluationException("Empty evaluable expression.")
 
         val state = ParsingState(tokens)
         val expression = startParsing(state)
 
-        if (!state.isAtEnd()) throw EvaluationException("Expression expected")
+        if (!state.isAtEnd()) throw EvaluationException("Expression expected.")
 
         return expression
     }
@@ -52,8 +52,6 @@ object Parser {
     }
 
     private fun parseRest(state: ParsingState): Operator {
-        if (state.isAtEnd()) throw EvaluationException("Expression expected")
-
         return when (val token = state.current()) {
             is Token.Literal -> {
                 state.forward()
@@ -62,7 +60,7 @@ object Parser {
             is Token.Cell.CellLink -> parseCellLink(token, state)
             is Token.Function -> parseFunction(token, state)
             Token.Bracket.LeftRound -> parseBracket(state)
-            else -> throw EvaluationException("Expression expected")
+            else -> throw EvaluationException("Unexpected expression end.")
         }
     }
 
@@ -70,7 +68,7 @@ object Parser {
         state.forward()
         val result = startParsing(state)
         if (state.current() != Token.Bracket.RightRound) {
-            throw EvaluationException("')' expected after expression")
+            throw EvaluationException("')' expected after expression.")
         }
         state.forward()
         return result
@@ -94,16 +92,21 @@ object Parser {
     private fun parseFunction(token: Token.Function, state: ParsingState): Operator {
         state.forward()
         if (state.current() != Token.Bracket.LeftRound) {
-            throw EvaluationException("'(' expected after function call")
+            throw EvaluationException("'(' expected after function call.")
         }
         state.forward()
         val arguments = mutableListOf<Operator>()
         while (!state.isAtEnd() && state.current() != Token.Bracket.RightRound) {
             arguments += startParsing(state)
-            if (state.current() is Token.Function.ArgumentDelimiter) state.forward()
+            when (state.current()) {
+                Token.Function.ArgumentDelimiter.Comma -> state.forward()
+                Token.Bracket.RightRound -> break
+                null -> break
+                else -> throw EvaluationException("Expected ',' between function arguments.")
+            }
         }
         if (state.current() != Token.Bracket.RightRound) {
-            throw EvaluationException("expected ')' after a function call")
+            throw EvaluationException("expected ')' after a function call.")
         }
         state.forward()
         return OperatorFunction(token, arguments)

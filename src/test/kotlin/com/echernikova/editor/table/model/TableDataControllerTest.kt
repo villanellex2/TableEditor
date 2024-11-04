@@ -9,7 +9,7 @@ class TableDataControllerTest {
     fun `TableData recalculates dependencies`() {
         fillTable()
 
-        underTest.setValueToCell(A0.pointer, UPDATED_VALUE.toString())
+        underTest.setValueToCell(A3.pointer, UPDATED_VALUE.toString())
         assertEquals(UPDATED_VALUE.toString(), A1.getEvaluationResult().evaluatedValue.toString())
         assertEquals(UPDATED_VALUE.toString(), A2.getEvaluationResult().evaluatedValue.toString())
     }
@@ -19,7 +19,7 @@ class TableDataControllerTest {
         fillTable()
 
         underTest.setValueToCell(A1.pointer, UPDATED_VALUE.toString())
-        assertEquals("0", A0.getEvaluationResult().evaluatedValue.toString())
+        assertEquals("0", A3.getEvaluationResult().evaluatedValue.toString())
         assertEquals(UPDATED_VALUE.toString(), A1.getEvaluationResult().evaluatedValue.toString())
         assertEquals(UPDATED_VALUE.toString(), A2.getEvaluationResult().evaluatedValue.toString())
     }

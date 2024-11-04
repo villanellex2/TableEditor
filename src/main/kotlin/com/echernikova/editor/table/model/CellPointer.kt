@@ -8,7 +8,7 @@ data class CellPointer(val row: Int, val column: Int) {
         fun fromString(name: String?): CellPointer? {
             name ?: return null
             val column = name[0] - 'A' + 1
-            val row = name.substring(1, name.length).toIntOrNull() ?: return null
+            val row = name.substring(1, name.length).toIntOrNull()?.let { it - 1 } ?: return null
 
             return CellPointer(row, column)
         }

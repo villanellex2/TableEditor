@@ -26,7 +26,7 @@ object Tokenizer {
                 '%' -> addToken(state, Token.Operator.Binary.Modulo)
                 '=' -> addToken(state, Token.Operator.Binary.Equal)
                 '^' -> addToken(state, Token.Operator.Binary.Power)
-                ';' -> addToken(state, Token.Function.ArgumentDelimiter)
+                ',' -> addToken(state, Token.Function.ArgumentDelimiter.Comma)
                 ':' -> addToken(state, Token.Cell.CellDelimiter)
                 '&' -> if (state.next() == '&') {
                     addToken(state, Token.Operator.Binary.And)

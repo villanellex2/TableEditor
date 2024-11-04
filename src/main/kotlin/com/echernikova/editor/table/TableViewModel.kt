@@ -9,7 +9,7 @@ private const val DEFAULT_PAGE_SIZE = 100
 class TableViewModel(
     initialData: Array<Array<Any?>>?,
     val tableDataController: TableDataController,
-): DefaultTableModel(initialData, getColumns()) {
+) : DefaultTableModel(initialData, getColumns()) {
 
     private var isLoading = false
     private val lock = Any()
@@ -23,8 +23,8 @@ class TableViewModel(
             if (event.lastRow < 0 || event.column < 0) return@addTableModelListener
             if (event.lastRow >= rowCount || event.column >= columnCount) return@addTableModelListener
 
-                val cellValue = getValueAt(event.lastRow, event.column)?.toString()
-                tableDataController.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
+            val cellValue = getValueAt(event.lastRow, event.column)?.toString()
+            tableDataController.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
         }
     }
 

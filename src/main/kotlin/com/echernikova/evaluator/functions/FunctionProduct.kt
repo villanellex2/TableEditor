@@ -28,7 +28,7 @@ class FunctionProduct : Function {
                     if (res !in Int.MIN_VALUE..Int.MAX_VALUE) return ErrorEvaluationResult("Overflow!", dependencies)
                 }
 
-                return DataEvaluationResult(res, dependencies)
+                return DataEvaluationResult(res.toInt(), dependencies)
             }
             is Double -> {
                 var res = 1.0
