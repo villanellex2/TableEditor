@@ -10,22 +10,23 @@ sealed class EvaluationResult<T : Any?>(
     object Empty
 
     fun copyWithDependencies(
-        newCellDependencies: Set<CellPointer>
+        newCellDependencies: Set<CellPointer>,
+        override: Boolean = false
     ): EvaluationResult<*> {
         return when (this) {
             is DataEvaluationResult -> DataEvaluationResult(
                 evaluatedValue = evaluatedValue,
-                cellDependencies = newCellDependencies + cellDependencies
+                cellDependencies = if (override) newCellDependencies else (newCellDependencies + cellDependencies)
             )
 
             is CellRangeEvaluationResult -> CellRangeEvaluationResult(
                 evaluatedValue = evaluatedValue,
-                cellDependencies = newCellDependencies + cellDependencies
+                cellDependencies = if (override) newCellDependencies else (newCellDependencies + cellDependencies)
             )
 
             is ErrorEvaluationResult -> ErrorEvaluationResult(
                 evaluatedValue = evaluatedValue,
-                cellDependencies = newCellDependencies + cellDependencies
+                cellDependencies = if (override) newCellDependencies else (newCellDependencies + cellDependencies)
             )
         }
     }

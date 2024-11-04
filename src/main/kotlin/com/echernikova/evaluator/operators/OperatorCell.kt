@@ -3,8 +3,6 @@ package com.echernikova.evaluator.operators
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.evaluator.core.*
 import com.echernikova.evaluator.core.tokenizing.Token
-import com.echernikova.fileopening.FileOpeningFrameViewModel
-import org.koin.java.KoinJavaComponent.getKoin
 
 interface OperatorCell: Operator
 
@@ -47,10 +45,12 @@ private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer):
     }
 
     val link = context.table.getOrCreateCell(cellPointer)
-    if (link.evaluationResult == null) link.evaluate(getKoin().get<Evaluator>(), context.table)
+    if (link.evaluating) {
+        return ErrorEvaluationResult(
+            evaluatedValue = "Cycle dependencies!",
+            cellDependencies = setOf(cellPointer)
+        )
+    }
 
-    return link.evaluationResult?.copyWithDependencies(setOf(cellPointer)) ?: ErrorEvaluationResult(
-        evaluatedValue = "Error on evaluation $cellPointer.",
-        cellDependencies = setOf(cellPointer)
-    )
+    return link.getEvaluationResult().copyWithDependencies(setOf(cellPointer), override = true)
 }

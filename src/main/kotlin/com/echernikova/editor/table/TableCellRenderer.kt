@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer
 private const val ERROR_MESSAGE = "ERROR!"
 
 class TableCellRenderer(
-    val tableDataController: TableDataController,
+    private val tableDataController: TableDataController,
 ) : DefaultTableCellRenderer() {
 
     override fun getTableCellRendererComponent(
@@ -33,8 +33,8 @@ class TableCellRenderer(
         }
 
         val cellEvaluationData = tableDataController.getCell(CellPointer(row, column)) ?: return cell
-        val result = cellEvaluationData.evaluationResult
-        val value = result?.evaluatedValue
+        val result = cellEvaluationData.getEvaluationResult()
+        val value = result.evaluatedValue
 
         when (result) {
             is ErrorEvaluationResult -> {
@@ -48,20 +48,16 @@ class TableCellRenderer(
                 when (value) {
                     is Int, is String -> {
                         cell.horizontalAlignment = RIGHT
-                        setNormalValue(cellEvaluationData.evaluationResult)
+                        setNormalValue(result)
                     }
                     is Double, is Boolean -> {
                         cell.horizontalAlignment = LEFT
-                        setNormalValue(cellEvaluationData.evaluationResult)
+                        setNormalValue(result)
                     }
                     is EvaluationResult.Empty -> {
                         cell.text = ""
                     }
                 }
-            }
-
-            null -> {
-                cell.text = ""
             }
         }
         return cell
