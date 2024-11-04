@@ -116,7 +116,6 @@ object Tokenizer {
         val token = when (numberOfDots) {
             0 -> numberStr.toIntOrNull()?.let { Token.Literal.Int(it) } ?: run { throw error }
             1 -> numberStr.toDoubleOrNull()?.let { Token.Literal.Double(it) } ?: run { throw error }
-            // todo: Date? 2 ->
             else -> throw error
         }
         state.tokens.add(token)

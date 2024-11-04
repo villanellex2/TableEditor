@@ -83,7 +83,6 @@ class EditorFrame(
     }
 
     private fun createMenuBar() {
-        // todo: SafeAs(по новому пути)
         System.setProperty("apple.laf.useScreenMenuBar", "true")
         jMenuBar = EditorMenuBar(frameViewModel)
     }
