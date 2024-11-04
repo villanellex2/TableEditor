@@ -4,9 +4,9 @@ import com.echernikova.evaluator.core.*
 
 class TableCell(
     var rawValue: String?,
-    val cellPointer: CellPointer,
-    private val evaluator: Evaluator,
+    val pointer: CellPointer,
     private val tableDataController: TableDataController,
+    private val evaluator: Evaluator,
     private val onEvaluated: (TableCell) -> Unit
 ) {
     private var evaluationResult: FinalEvaluationResult<*>? = null
@@ -29,7 +29,7 @@ class TableCell(
 
         evaluating = true
         return if (value.isNullOrEmpty()) {
-            return DataEvaluationResult(EvaluationResult.Empty, emptySet())
+            DataEvaluationResult(EvaluationResult.Empty, emptySet())
         } else {
             evaluator.evaluate(value, tableDataController)
         }.also {

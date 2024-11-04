@@ -28,19 +28,19 @@ class EvaluatorTest {
     private val tableDataController = TableDataController(evaluator = underTest)
 
     init {
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition, "false")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A2")).cellPosition, "true")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition, "5")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition, "1.0")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition, "= 3.0 + 5")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition!!, "false")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A2")).cellPosition!!, "true")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition!!, "5")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition!!, "1.0")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition!!, "= 3.0 + 5")
 
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition, "Dog")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition, "Cat")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition, "Tiger")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition!!, "Dog")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition!!, "Cat")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition!!, "Tiger")
 
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition, "17kg")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition, "2.5kg")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition, "80kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition!!, "17kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition!!, "2.5kg")
+        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition!!, "80kg")
     }
 
     companion object {

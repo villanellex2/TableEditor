@@ -24,7 +24,17 @@ val functionsModule = module {
 
 val evaluatorModule = module {
     factory { TableDataController(get()) }
-    single { Evaluator(getAll<Function>().associateBy { it.name }) }
+    single {
+        Evaluator(listOf(
+            FunctionSum(),
+            FunctionMin(),
+            FunctionMax(),
+            FunctionAverage(),
+            FunctionProduct(),
+            FunctionIf(),
+            FunctionVLookUp(),
+        ).associateBy { it.name })
+    }
 }
 
 val appModule = module {

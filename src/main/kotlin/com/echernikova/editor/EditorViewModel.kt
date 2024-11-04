@@ -2,7 +2,14 @@ package com.echernikova.editor
 
 import com.echernikova.editor.table.TableViewModel
 import com.echernikova.file.SupportedExtensions
+import com.echernikova.fileopening.LastOpenFile
 import java.io.File
+import javax.swing.JOptionPane
+
+private const val SAVING_IN_PROCESS = "Saving..."
+private const val SAVED_MESSAGE = "Successfully saved."
+private const val ERROR_ON_SAVING = "Error on saving file."
+private val INCORRECT_FILE_TYPE = { extension: String -> "Couldn't save file with type '$extension'."}
 
 class EditorViewModel(
     val file: File,
@@ -14,18 +21,30 @@ class EditorViewModel(
     var onStatusUpdateListener: StatusUpdateListener? = null
 
     fun onSafeClicked() {
-        onStatusUpdateListener?.onStatusUpdated("Saving...", Status.INFO)
+        onStatusUpdateListener?.onStatusUpdated(SAVING_IN_PROCESS, Status.INFO)
         val extension = SupportedExtensions.fromFile(file) ?: run {
-            //todo: showError popup
-            onStatusUpdateListener?.onStatusUpdated("Can't safe file", Status.ERROR)
+            showErrorMessage(INCORRECT_FILE_TYPE(file.extension))
+            onStatusUpdateListener?.onStatusUpdated(ERROR_ON_SAVING, Status.ERROR)
             return
         }
-        extension.fileHelper.writeTable(tableViewModel.getDataAsList(), file.path)
-        onStatusUpdateListener?.onStatusUpdated("Successfully saved", Status.INFO)
+        val saveResult = extension.fileHelper.writeTable(tableViewModel.getDataAsList(), file.path)
+
+        if (saveResult == null) {
+            LastOpenFile.setPath(file.path)
+            onStatusUpdateListener?.onStatusUpdated(SAVED_MESSAGE, Status.INFO)
+        } else {
+            onStatusUpdateListener?.onStatusUpdated(ERROR_ON_SAVING, Status.ERROR)
+            showErrorMessage(saveResult.localizedMessage)
+        }
     }
 
-    fun loadNewTablePage() {
-        tableViewModel.loadNextPage()
+    private fun showErrorMessage(message: String?) {
+        JOptionPane.showMessageDialog(
+            /* parentComponent = */ null,
+            /* message = */ message ?: ERROR_ON_SAVING,
+            /* title = */ "Cannot save file",
+            /* messageType = */ JOptionPane.ERROR_MESSAGE
+        )
     }
 
     private fun TableViewModel.getDataAsList(): List<Array<String?>> {

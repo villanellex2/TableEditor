@@ -6,7 +6,7 @@ import com.echernikova.evaluator.core.tokenizing.Token
 import kotlin.math.pow
 
 private val numbersErrorMessage = { str: String -> "Binary operator '$str' supports only number values as arguments."}
-private val invalidArgumentsError = { str: String -> "Invalid arguments for binary operation '$str'." }
+private val invalidArgumentsError = { str: String -> "Division by zero." }
 private val overflowError = { "Overflow!." }
 private val booleanErrorMessage = { str: String -> "Binary operator '$str' supports only boolean values as arguments."}
 
@@ -79,8 +79,8 @@ class OperatorBinary(
             Token.Operator.Binary.Division -> numbersEvaluation(
                 operator,
                 leftEvaluated, rightEvaluated, dependencies,
-                { first, second -> first / second },
-                { first, second -> first / second },
+                { first, second -> if (second != 0) first / second else null },
+                { first, second -> if (second != 0.0) first / second else null},
             )
 
             Token.Operator.Binary.Modulo -> numbersEvaluation(

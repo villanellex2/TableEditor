@@ -9,7 +9,7 @@ interface OperatorCell: Operator
 /**
  * Evaluation of other cell value, such as A2, C12 etc.
  */
-class OperatorCellLink(val cellPosition: CellPointer): OperatorCell {
+class OperatorCellLink(val cellPosition: CellPointer?): OperatorCell {
     constructor(link: Token.Cell.CellLink) : this(CellPointer.fromString(link.name))
 
     override fun evaluate(context: Context): EvaluationResult<*> {
@@ -39,8 +39,8 @@ class OperatorCellRange(
 }
 
 
-private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer): EvaluationResult<*> {
-    if (cellPointer.row < 0 || cellPointer.column > 27 || cellPointer.column < 0) {
+private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer?): EvaluationResult<*> {
+    if (cellPointer == null ||cellPointer.row < 0 || cellPointer.column > 27 || cellPointer.column < 0) {
         return ErrorEvaluationResult("Incorrect cell link", emptySet())
     }
 

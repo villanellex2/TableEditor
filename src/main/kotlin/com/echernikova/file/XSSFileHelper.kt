@@ -7,11 +7,13 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import javax.swing.JTable
 
 class XSSFileHelper: FileHelper {
-    override fun writeTable(table: List<Array<String?>>, filePath: String) {
+    override fun writeTable(table: List<Array<String?>>, filePath: String): Throwable? {
         val workbook: Workbook = XSSFWorkbook()
         val sheet: Sheet = workbook.createSheet("Table Data")
+
         if (table.isNotEmpty()) {
             val columnCount = table[0].size
 
@@ -32,10 +34,13 @@ class XSSFileHelper: FileHelper {
             FileOutputStream(filePath).use { fileOut ->
                 workbook.write(fileOut)
             }
+        }.onFailure { exception ->
+            workbook.close()
+            return exception
         }
 
-        workbook.close()
         println("File successfully saved $filePath")
+        return null
     }
 
     override fun readTable(filePath: String): List<Array<Any?>>? {
@@ -76,6 +81,7 @@ class XSSFileHelper: FileHelper {
                     } else {
                         cell.numericCellValue.toString()
                     }
+
                     CellType.BOOLEAN -> cell.booleanCellValue.toString()
                     CellType.FORMULA -> cell.cellFormula
                     else -> ""

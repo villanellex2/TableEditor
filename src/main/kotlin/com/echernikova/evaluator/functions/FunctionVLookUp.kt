@@ -28,8 +28,13 @@ class FunctionVLookUp : Function {
             )
         }
 
-        val minColumn = range.evaluatedValue.first().cellPosition.column
-        val maxColumn = range.evaluatedValue.last().cellPosition.column
+        val error = ErrorEvaluationResult(
+            evaluatedValue = "Incorrect cell link.",
+            cellDependencies = dependencies
+        )
+
+        val minColumn = range.evaluatedValue.first().cellPosition?.column ?: return error
+        val maxColumn = range.evaluatedValue.last().cellPosition?.column ?: return error
 
         if (minColumn + column > maxColumn + 1 ) {
             return ErrorEvaluationResult(
@@ -41,6 +46,7 @@ class FunctionVLookUp : Function {
         val foundValue = range.evaluatedValue.firstOrNull { it.evaluate(context).evaluatedValue == valueToFind.evaluatedValue }
 
         if (foundValue == null) return ErrorEvaluationResult("Couldn't find cell with value ${valueToFind.evaluatedValue}.", dependencies)
+        if (foundValue.cellPosition == null) return error
 
         return OperatorCellLink(CellPointer(row = foundValue.cellPosition.row, column = column + minColumn - 1))
             .evaluate(context).copyWithDependencies(dependencies)

@@ -9,8 +9,11 @@ import org.koin.java.KoinJavaComponent.getKoin
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JFileChooser
+import javax.swing.JOptionPane
 
 class FileOpeningFrameViewModel {
+
+    fun getRecentOpenFile() = LastOpenFile.getPath()
 
     fun onClickOnCreateButton(
         button: JButton,
@@ -18,10 +21,14 @@ class FileOpeningFrameViewModel {
     ) {
         val fileChooser = TableFileChooser()
         if (fileChooser.showSaveDialog(button) == JFileChooser.APPROVE_OPTION) {
-            val file = fileChooser.selectedFile
+            var file = fileChooser.selectedFile
+
+            if (file.extension.isNullOrEmpty()) {
+                file = File("${file.path}.xls")
+            }
 
             if (file.exists()) {
-                //todo: showError
+                showErrorDialog("File ${file.path} already exists.", "Cannot create file.")
             } else {
                 openEmptyTable(file, disposeFrameCallback)
             }
@@ -37,29 +44,48 @@ class FileOpeningFrameViewModel {
             val file = fileChooser.selectedFile
             LastOpenFile.setPath(file.path)
 
-            if (file.exists()) {
-                if (!openExistingTable(file, disposeFrameCallback)) {
-                    // todo: showError
-                }
-            } else {
-                //todo: showError
-            }
+            openExistingFile(file, disposeFrameCallback)
         }
     }
 
     fun onClickOnOpenRecentButton(
         lastOpenedPath: String,
         disposeFrameCallback: () -> Unit,
-    ) {
-        val file = File(lastOpenedPath)
+    ): Boolean {
+        return openExistingFile( File(lastOpenedPath), disposeFrameCallback)
+    }
 
-        if (file.exists()) {
-            if (!openExistingTable(file, disposeFrameCallback)) {
-                // todo: showError
+    private fun openExistingFile(
+        file: File,
+        disposeFrameCallback: () -> Unit,
+    ): Boolean {
+        return if (file.exists()) {
+            when (openExistingTable(file, disposeFrameCallback)) {
+                FileOpeningStatus.SUCCESS -> true
+                FileOpeningStatus.CANNOT_READ -> {
+                    showErrorDialog("Cannot read data in ${file.path}.", "Can't open file.")
+                    false
+                }
+                FileOpeningStatus.UNSUPPORTED_EXTENSION -> {
+                    showErrorDialog("Unsupported file type ${file.path}.", "Can't open file.")
+                    false
+                }
+                FileOpeningStatus.ERROR_ON_TABLE_READING -> {
+                    showErrorDialog("Incorrect table data. Error on reading.", "Can't open file.")
+                    false
+                }
             }
         } else {
-            // todo: show error
+            showErrorDialog("File is not exist.", "Can't open file.")
+            false
         }
+    }
+
+    private fun showErrorDialog(
+        message: String,
+        title: String,
+    ) {
+        JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE)
     }
 
     private fun openEmptyTable(
@@ -75,14 +101,22 @@ class FileOpeningFrameViewModel {
     private fun openExistingTable(
         file: File,
         disposeFrameCallback: () -> Unit,
-    ): Boolean {
-        val fileHelper = SupportedExtensions.fromFile(file)?.fileHelper ?: return false
-        val data = fileHelper.readTable(file.path) ?: return false
+    ): FileOpeningStatus {
+        if (!file.canRead()) return FileOpeningStatus.CANNOT_READ
+        val fileHelper = SupportedExtensions.fromFile(file)?.fileHelper ?: return FileOpeningStatus.UNSUPPORTED_EXTENSION
+        val data = fileHelper.readTable(file.path) ?: return FileOpeningStatus.ERROR_ON_TABLE_READING
 
         val editorViewModel: EditorViewModel = getKoin().get { parametersOf(file, data.toTypedArray()) }
 
         EditorFrame(editorViewModel).isVisible = true
         disposeFrameCallback.invoke()
-        return true
+        return FileOpeningStatus.SUCCESS
+    }
+
+    private enum class FileOpeningStatus() {
+        SUCCESS,
+        ERROR_ON_TABLE_READING,
+        UNSUPPORTED_EXTENSION,
+        CANNOT_READ
     }
 }

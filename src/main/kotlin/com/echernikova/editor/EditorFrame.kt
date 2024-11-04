@@ -13,6 +13,9 @@ import java.awt.event.KeyEvent
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 
+private const val DEFAULT_CELL_MIN_WIDTH = 30
+private const val DEFAULT_CELL_WIDTH = 120
+
 class EditorFrame(
     private val frameViewModel: EditorViewModel,
 ) : JFrame() {
@@ -61,7 +64,14 @@ class EditorFrame(
             }
         })
 
+        for (i in 0 until table.columnCount) {
+            val column = table.columnModel.getColumn(i)
+            column.minWidth = DEFAULT_CELL_MIN_WIDTH
+            column.preferredWidth = DEFAULT_CELL_WIDTH
+        }
+
         frameViewModel.onStatusUpdateListener = StatusUpdateListener(::onStatusUpdated, CoroutineScope(Dispatchers.Default))
+        frameViewModel.tableViewModel.evaluateData()
     }
 
     private fun onStatusUpdated(status: String, type: Status) {
@@ -83,7 +93,7 @@ class EditorFrame(
 
         scrollPane.verticalScrollBar.addAdjustmentListener {
             if (isScrolledToBottom()) {
-                frameViewModel.loadNewTablePage()
+                frameViewModel.tableViewModel.loadNextPage()
             }
         }
     }

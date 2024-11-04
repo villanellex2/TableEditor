@@ -1,6 +1,5 @@
 package com.echernikova.views
 
-import com.echernikova.utils.parseAsARGB
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -12,8 +11,6 @@ class RoundedButton(
     text: String,
     private val cornersRadius: Int
 ) : JButton(text) {
-    var borderColor = "#00000000".parseAsARGB()
-
     init {
         isContentAreaFilled = false
         border = EmptyBorder(cornersRadius, cornersRadius, cornersRadius, cornersRadius)
@@ -38,7 +35,6 @@ class RoundedButton(
             return
         }
 
-        g2.color = borderColor
         g2.drawRoundRect(0, 0, width - 1, height - 1, cornersRadius, cornersRadius)
     }
 }

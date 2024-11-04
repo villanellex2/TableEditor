@@ -20,9 +20,9 @@ class TableDependenciesGraph {
     fun updateDependencies(cell: TableCell) {
         val newDependencies = cell.getEvaluationResult().cellDependencies
 
-        clearCellDependencies(cell.cellPointer)
+        clearCellDependencies(cell.pointer)
         newDependencies.forEach { dependency ->
-            addDependency(cell.cellPointer, dependency)
+            addDependency(cell.pointer, dependency)
         }
     }
 
@@ -60,7 +60,7 @@ class TableDependenciesGraph {
             cyclePath.removeAt(cyclePath.lastIndex)
         }
 
-        visit(startCell.cellPointer)
+        visit(startCell.pointer)
         return DependenciesOutput(sortedCells, cellsInCycle.associateWith { this.reverseDependencies[it] })
     }
 

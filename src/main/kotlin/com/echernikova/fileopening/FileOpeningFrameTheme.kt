@@ -1,13 +1,13 @@
 package com.echernikova.fileopening
 
-import com.echernikova.utils.parseAsARGB
+import java.awt.Color
 
 object FileOpeningFrameTheme {
-    val buttonsFontSize = 16f
-    val buttonFontColor = "#ee1e1010".parseAsARGB()
+    const val buttonsFontSize = 16f
+    val buttonFontColor = Color(0x1e1010)
 
-    val createButtonBackgroundColor = "#ffceceff".parseAsARGB()
-    val openButtonBackgroundColor = "#fff2d8f5".parseAsARGB()
-    val openLastButtonBackgroundColorActive = "#ffcee6ff".parseAsARGB()
-    val openLastButtonBackgroundColorInactive = "#ffe3e6ea".parseAsARGB()
+    val createButtonBackgroundColor = Color(0xceceff)
+    val openButtonBackgroundColor = Color(0xf2d8f5)
+    val openLastButtonBackgroundColorActive = Color(0xcee6ff)
+    val openLastButtonBackgroundColorInactive = Color(0xe3e6ea)
 }

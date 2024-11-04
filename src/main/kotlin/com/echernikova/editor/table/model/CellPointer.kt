@@ -1,22 +1,22 @@
 package com.echernikova.editor.table.model
 
-import com.echernikova.evaluator.core.EvaluationException
 import kotlin.math.max
 import kotlin.math.min
 
 data class CellPointer(val row: Int, val column: Int) {
     companion object {
-        fun fromString(name: String): CellPointer {
+        fun fromString(name: String?): CellPointer? {
+            name ?: return null
             val column = name[0] - 'A' + 1
-            if (column < 0 || column >= 21) throw EvaluationException("Cell link $name is incorrect.")
-            val row = name.substring(1, name.length).toIntOrNull()
-                ?: throw EvaluationException("Cell link $name is incorrect.")
+            val row = name.substring(1, name.length).toIntOrNull() ?: return null
 
             return CellPointer(row, column)
         }
 
 
-        fun buildCellDependenciesInBetween(from: CellPointer, to: CellPointer): MutableSet<CellPointer> {
+        fun buildCellDependenciesInBetween(from: CellPointer?, to: CellPointer?): Set<CellPointer> {
+            from ?: return emptySet<CellPointer>()
+            to ?: return emptySet<CellPointer>()
             val (row1, column1) = from
             val (row2, column2) = to
 

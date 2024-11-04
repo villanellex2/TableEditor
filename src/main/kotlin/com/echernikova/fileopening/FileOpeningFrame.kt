@@ -2,7 +2,10 @@ package com.echernikova.fileopening
 
 import com.echernikova.views.RoundedButton
 import java.awt.*
-import javax.swing.*
+import java.io.File
+import javax.swing.JButton
+import javax.swing.JFrame
+import javax.swing.SwingConstants
 
 private const val FRAME_NAME = "Open table"
 
@@ -30,6 +33,7 @@ class FileOpeningFrame(
         constraints.weightx = 0.0
         constraints.weighty = 0.0
         constraints.fill = GridBagConstraints.NONE
+
         val openResentButton = createOpenResentButton()
         openResentButton.preferredSize = Dimension(440, 100)
         add(openResentButton, constraints)
@@ -62,18 +66,18 @@ class FileOpeningFrame(
     }
 
     private fun createOpenResentButton(): JButton {
-        val path = LastOpenFile.getPath()
+        val path = viewModel.getRecentOpenFile()
         return createButtonBase(
-            "<html>" +
-                    "<div style='text-align: left;'>Open recent file </div>" +
-                    "<div style='font-size: 6px'></div>" +
-                    "<div style='font-size: 11px; color: rgb(100,100,100); font-family: monospace;'>" +
-                    (path ?: "no recent path..") + "</div></html>", path != null
+            "<html>" + "<div style='text-align: left;'>Open recent file </div>" + "<div style='font-size: 6px'></div>" + "<div style='font-size: 11px; color: rgb(100,100,100); font-family: monospace;'>" + (path
+                ?: "no recent path..") + "</div></html>", path != null
         ).apply {
             horizontalAlignment = SwingConstants.LEFT
-            if (path != null ) {
+            if (path != null && File(path).exists()) {
                 addActionListener {
-                    viewModel.onClickOnOpenRecentButton(path) { this@FileOpeningFrame.dispose() }
+                    if (!viewModel.onClickOnOpenRecentButton(path) { this@FileOpeningFrame.dispose() }) {
+                        background = FileOpeningFrameTheme.openLastButtonBackgroundColorInactive
+                        actionListeners.forEach { removeActionListener(it) }
+                    }
                 }
                 background = FileOpeningFrameTheme.openLastButtonBackgroundColorActive
             } else {
