@@ -15,7 +15,6 @@ class TableViewModel(
     private val lock = Any()
 
     init {
-        tableDataController.initData(dataVector)
         tableDataController.dataExpiredCallback = { cellPointer: CellPointer ->
             fireTableCellUpdated(cellPointer.row, cellPointer.column)
         }
@@ -27,6 +26,10 @@ class TableViewModel(
                 val cellValue = getValueAt(event.lastRow, event.column)?.toString()
                 tableDataController.setValueToCell(CellPointer(event.lastRow, event.column), cellValue)
         }
+    }
+
+    fun evaluateData() {
+        tableDataController.initData(dataVector)
     }
 
     override fun addRow(rowData: Array<Any?>) {

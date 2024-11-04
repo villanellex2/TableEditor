@@ -4,8 +4,11 @@ import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.evaluator.core.*
 import java.awt.Component
+import java.awt.Point
+import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.JTable
+import javax.swing.border.EmptyBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 private const val ERROR_MESSAGE = "ERROR!"
@@ -41,7 +44,7 @@ class TableCellRenderer(
                 cell.horizontalAlignment = CENTER
                 cell.font = TableTheme.errorCellFont
                 cell.foreground = TableTheme.errorCellColor
-                cell.text = result.evaluatedValue
+                cell.text = ERROR_MESSAGE
             }
 
             is DataEvaluationResult -> {
@@ -60,6 +63,8 @@ class TableCellRenderer(
                 }
             }
         }
+
+        cell.border = EmptyBorder(0, 8, 0, 8)
         return cell
     }
 

@@ -1,6 +1,8 @@
 package com.echernikova.editor.table.model
 
 import com.echernikova.evaluator.core.Evaluator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.*
 
 /**
@@ -13,6 +15,8 @@ class TableDataController(
     private val data: MutableMap<CellPointer, TableCell> = mutableMapOf()
     private val dependenciesGraph = TableDependenciesGraph()
     private val onEvaluatedCallback = { cell: TableCell -> dependenciesGraph.updateDependencies(cell) }
+    private val scope = CoroutineScope(Dispatchers.Default)
+    private val lock = Any()
 
     var dataExpiredCallback: ((CellPointer) -> Unit) = {}
 
@@ -28,12 +32,16 @@ class TableDataController(
             }
         }
 
-        data.forEach { (_, cell) ->
-            cell.getEvaluationResult() // evaluate cell data and it's dependencies if needed.
-        }
+        scope.run {
+            synchronized(lock) {
+                data.toList().forEach { (_, cell) ->
+                    cell.getEvaluationResult() // evaluate cell data and it's dependencies if needed.
+                }
 
-        data.forEach {
-            dataExpiredCallback(it.key)
+                data.forEach {
+                    dataExpiredCallback(it.key)
+                }
+            }
         }
     }
 
@@ -46,7 +54,7 @@ class TableDataController(
      * Get or create empty cell if it is not initialised yet.
      */
     fun getOrCreateCell(pointer: CellPointer): TableCell {
-        return data.getOrPut(pointer) { createCell(pointer) }
+        return synchronized(lock) { data.getOrPut(pointer) { createCell(pointer) } }
     }
 
     /**
@@ -56,32 +64,37 @@ class TableDataController(
     fun setValueToCell(pointer: CellPointer, value: String?) {
         val cell = getOrCreateCell(pointer)
         if (cell.rawValue == value) return
-        cell.rawValue = value
-
-        evaluateInCorrectOrder(cell)
+        synchronized(lock) {
+            cell.rawValue = value
+            evaluateInCorrectOrder(cell)
+        }
     }
 
     fun addRow(row: Int, values: Array<Any?>) {
-        values.mapIndexedNotNull { i, value ->
-            if (i != 0 && value != null) {
-                createCell(CellPointer(row, i), value.toString()).also { evaluateInCorrectOrder(it) }
-            } else null
+        synchronized(lock) {
+            values.mapIndexedNotNull { i, value ->
+                if (i != 0 && value != null) {
+                    createCell(CellPointer(row, i), value.toString()).also { evaluateInCorrectOrder(it) }
+                } else null
+            }
         }
     }
 
     private fun evaluateInCorrectOrder(cell: TableCell) {
-        cell.evaluate()
-        val (evaluationOrder, cycleCells) = dependenciesGraph.getCellsToUpdate(cell)
+        scope.run {
+            cell.evaluate()
+            val (evaluationOrder, cycleCells) = dependenciesGraph.getCellsToUpdate(cell)
 
-        evaluationOrder.forEach { getCell(it)?.evaluate() }
-        cycleCells.forEach { (cell, dependencies) -> getCell(cell)?.markHasCycleDependencies(dependencies) }
+            evaluationOrder.forEach { if (it != cell.pointer) getCell(it)?.evaluate() }
+            cycleCells.forEach { (cell, dependencies) -> getCell(cell)?.markHasCycleDependencies(dependencies) }
 
-        evaluationOrder.forEach { dataExpiredCallback(it) }
-        cycleCells.forEach { dataExpiredCallback(it.key) }
+            evaluationOrder.forEach { dataExpiredCallback(it) }
+            cycleCells.forEach { dataExpiredCallback(it.key) }
+        }
     }
 
     private fun createCell(pointer: CellPointer, value: String? = null): TableCell {
-        return TableCell(value, pointer, evaluator, this, onEvaluatedCallback).also {
+        return TableCell(value, pointer, this, evaluator, onEvaluatedCallback).also {
             data[pointer] = it
         }
     }
