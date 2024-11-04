@@ -14,7 +14,7 @@ class EditorMenuBar(
 
         val saveMenuItem = JMenuItem("Save")
         saveMenuItem.addActionListener {
-            editorViewModel.onSafeClicked()
+            editorViewModel.onSaveClicked()
         }
         fileMenu.add(saveMenuItem)
     }

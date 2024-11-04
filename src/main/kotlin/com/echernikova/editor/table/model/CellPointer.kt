@@ -4,6 +4,11 @@ import kotlin.math.max
 import kotlin.math.min
 
 data class CellPointer(val row: Int, val column: Int) {
+
+    override fun toString(): String {
+        return "${ 'A' + column - 1 }${ row + 1 }"
+    }
+
     companion object {
         fun fromString(name: String?): CellPointer? {
             name ?: return null

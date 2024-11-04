@@ -15,4 +15,7 @@ object TableTheme {
 
     val errorCellFont = Font("Monospaced", Font.PLAIN, 14)
     val errorCellColor = Color(0xff0000)
+
+    val tableSelectionBackgroundColor = Color(0xE5EBFF)
+    val tableSelectionForegroundColor = Color(0x333333)
 }

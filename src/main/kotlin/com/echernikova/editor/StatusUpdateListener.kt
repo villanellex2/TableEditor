@@ -3,6 +3,7 @@ package com.echernikova.editor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 
 class StatusUpdateListener(
@@ -24,6 +25,15 @@ class StatusUpdateListener(
                     callback.invoke("", Status.INFO)
                 }
             }
+        }
+
+        if (type == Status.ERROR) {
+            JOptionPane.showMessageDialog(
+                /* parentComponent = */ null,
+                /* message = */ status,
+                /* title = */ "Cannot save file",
+                /* messageType = */ JOptionPane.ERROR_MESSAGE
+            )
         }
     }
 }

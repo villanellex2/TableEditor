@@ -70,6 +70,8 @@ class TableDataController(
         }
     }
 
+    fun getEvaluatedCells() = data.map { it.key to it.value.getEvaluationResult() }.toMap()
+
     fun addRow(row: Int, values: Array<Any?>) {
         synchronized(lock) {
             values.mapIndexedNotNull { i, value ->

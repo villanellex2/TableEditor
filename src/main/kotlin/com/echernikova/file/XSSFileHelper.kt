@@ -1,15 +1,20 @@
 package com.echernikova.file
 
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.DateUtil
-import org.apache.poi.ss.usermodel.Sheet
-import org.apache.poi.ss.usermodel.Workbook
+import com.echernikova.editor.table.model.CellPointer
+import com.echernikova.editor.table.model.TableCell
+import com.echernikova.evaluator.core.ErrorEvaluationResult
+import com.echernikova.evaluator.core.EvaluationResult
+import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class XSSFileHelper : FileHelper {
-    override fun writeTable(table: List<Array<String?>>, filePath: String): Throwable? {
+    override fun writeTable(
+        table: List<Array<String?>>,
+        mapEvaluated: Map<CellPointer, EvaluationResult<*>>,
+        filePath: String
+    ): String? {
         val workbook: Workbook = XSSFWorkbook()
         val sheet: Sheet = workbook.createSheet("Table Data")
 
@@ -21,14 +26,19 @@ class XSSFileHelper : FileHelper {
                     val rowIndex = table[row][0]?.toInt() ?: row
                     val excelRow = sheet.createRow(rowIndex)
 
-                    for (i in 1 until columnCount) {
-                        table[row][i]?.let { column ->
-                            val cell = excelRow.createCell(i - 1)
-                            if (column.startsWith("=")) {
-                                cell.cellFormula = column.substring(1, column.length)
-                            } else {
-                                cell.setCellValue(column)
+                    for (column in 1 until columnCount) {
+                        table[row][column]?.let { value ->
+                            val cell = excelRow.createCell(column - 1)
+
+                            val pointer = CellPointer(row, column)
+                            val result = mapEvaluated.get(pointer)
+
+                            if (result is ErrorEvaluationResult) {
+                                workbook.close()
+                                return "Error on saving cell '$pointer'. ${result.evaluatedValue}"
                             }
+
+                            cell.fillValue(value, result)
                         }
                     }
                 }
@@ -38,7 +48,7 @@ class XSSFileHelper : FileHelper {
 
         }.onFailure { exception ->
             workbook.close()
-            return exception
+            return exception.localizedMessage
         }
 
         println("File successfully saved $filePath")
@@ -76,18 +86,7 @@ class XSSFileHelper : FileHelper {
                     rowData.add(null)
                     currentColumn++
                 }
-                val cellValue = when (cell.cellType) {
-                    CellType.STRING -> cell.stringCellValue
-                    CellType.NUMERIC -> if (DateUtil.isCellDateFormatted(cell)) {
-                        cell.dateCellValue.toString()
-                    } else {
-                        cell.numericCellValue.toString()
-                    }
-
-                    CellType.BOOLEAN -> cell.booleanCellValue.toString()
-                    CellType.FORMULA -> "=" + cell.cellFormula
-                    else -> ""
-                }
+                val cellValue = cell.getValue()
                 currentColumn++
                 rowData.add(cellValue)
             }
@@ -99,5 +98,43 @@ class XSSFileHelper : FileHelper {
         fileInputStream.close()
 
         return data
+    }
+
+    private fun Cell.getValue(): String {
+        return when (cellType) {
+            CellType.STRING -> stringCellValue
+            CellType.NUMERIC -> if (DateUtil.isCellDateFormatted(this)) {
+                dateCellValue.toString()
+            } else {
+                numericCellValue.toString()
+            }
+
+            CellType.BOOLEAN -> booleanCellValue.toString()
+            CellType.FORMULA -> "=$cellFormula"
+            else -> ""
+        }
+    }
+
+    private fun Cell.fillValue(rawValue: String, evaluationResult: EvaluationResult<*>?) {
+        if (evaluationResult?.evaluatedValue == null) {
+            setCellValue(rawValue)
+            return
+        }
+
+        if (rawValue.startsWith("=")) {
+            runCatching {
+                cellFormula = rawValue.substring(1, rawValue.length)
+            }.onFailure {
+                setCellValue(rawValue)
+            }
+        }
+
+        when (val value = evaluationResult.evaluatedValue) {
+            is Double -> setCellValue(value)
+            is String -> setCellValue(value)
+            else -> setCellValue(rawValue)
+        }
+
+        return
     }
 }

@@ -35,9 +35,9 @@ class TableView(
 
         setShowGrid(true)
         gridColor = TableTheme.gridColor
+        selectionBackground = TableTheme.tableSelectionBackgroundColor
+        selectionForeground = TableTheme.tableSelectionForegroundColor
 
-        selectionBackground = Color(0xE5EBFF)
-        selectionForeground = Color(0x333333)
         rowHeight = 20
 
         setDefaultRenderer(Any::class.java, TableCellRenderer(tableModel.tableDataController))
