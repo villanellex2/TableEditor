@@ -12,6 +12,7 @@ class TableDataController(
 ) {
     private val data: MutableMap<CellPointer, TableCell> = mutableMapOf()
     private val dependenciesGraph = TableDependenciesGraph()
+    private val onEvaluatedCallback = { cell: TableCell -> dependenciesGraph.updateDependencies(cell) }
 
     var dataExpiredCallback: ((CellPointer) -> Unit) = {}
 
@@ -23,31 +24,12 @@ class TableDataController(
 
         sharingVector.forEachIndexed { row, vector ->
             vector.forEachIndexed { column, value ->
-                if (value != null) {
-                    data[CellPointer(row, column)] = TableCell(value.toString(), CellPointer(row, column)).also {
-                        dependenciesGraph.initDependencies(it)
-                    }
-                }
+                if (value != null) createCell(CellPointer(row, column), value.toString())
             }
         }
-        val evaluatedData = mutableSetOf<CellPointer>()
 
         data.forEach { (_, cell) ->
-            if (evaluatedData.contains(cell.cellPointer)) return@forEach
-
-            dependenciesGraph.initDependencies(cell)
-            val evaluationOrder = dependenciesGraph.getCellsToEvaluate(cell)
-
-            evaluationOrder.forEach { pointer ->
-                if (evaluatedData.contains(pointer)) return@forEach
-
-                val tableCell = getOrCreateCell(pointer)
-                tableCell?.let { cell ->
-                    cell.evaluate(evaluator, this)
-                    dependenciesGraph.updateDependencies(cell)
-                }
-            }
-            evaluatedData.addAll(evaluationOrder)
+            cell.getEvaluationResult() // evaluate cell data and it's dependencies if needed.
         }
 
         data.forEach {
@@ -88,19 +70,19 @@ class TableDataController(
     }
 
     private fun evaluateInCorrectOrder(cell: TableCell) {
-        cell.evaluate(evaluator, this)
-        dependenciesGraph.updateDependencies(cell)
-        val evaluationOrder = dependenciesGraph.getCellsToUpdate(cell)
+        cell.evaluate()
+        val (evaluationOrder, cycleCells) = dependenciesGraph.getCellsToUpdate(cell)
 
-        evaluationOrder.forEach { getCell(it)?.evaluate(evaluator, this) }
+        evaluationOrder.forEach { getCell(it)?.evaluate() }
+        cycleCells.forEach { (cell, dependencies) -> getCell(cell)?.markHasCycleDependencies(dependencies) }
+
         evaluationOrder.forEach { dataExpiredCallback(it) }
+        cycleCells.forEach { dataExpiredCallback(it.key) }
     }
 
     private fun createCell(pointer: CellPointer, value: String? = null): TableCell {
-        val cell = TableCell(value, pointer)
-        data[pointer] = cell
-        dependenciesGraph.initDependencies(cell)
-
-        return cell
+        return TableCell(value, pointer, evaluator, this, onEvaluatedCallback).also {
+            data[pointer] = it
+        }
     }
 }
