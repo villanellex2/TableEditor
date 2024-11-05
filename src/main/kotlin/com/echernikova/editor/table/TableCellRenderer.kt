@@ -40,8 +40,8 @@ class TableCellRenderer(
         when (result) {
             is ErrorEvaluationResult -> {
                 cell.horizontalAlignment = CENTER
-                cell.font = TableTheme.errorCellFont
-                cell.foreground = TableTheme.errorCellColor
+                cell.font = TableTheme.currentTheme.errorCellFont
+                cell.foreground = TableTheme.currentTheme.errorCellColor
                 cell.text = ERROR_MESSAGE
             }
 
@@ -67,8 +67,8 @@ class TableCellRenderer(
     }
 
     private fun JLabel.setNormalValue(evaluationResult: EvaluationResult<*>?) {
-        font = TableTheme.normalCellFont
-        foreground = TableTheme.normalCellColor
+        font = TableTheme.currentTheme.normalCellFont
+        foreground = TableTheme.currentTheme.normalCellColor
         text = evaluationResult?.evaluatedValue.toString()
     }
 }

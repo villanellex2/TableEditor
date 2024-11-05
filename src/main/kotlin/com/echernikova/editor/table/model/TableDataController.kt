@@ -3,6 +3,8 @@ package com.echernikova.editor.table.model
 import com.echernikova.evaluator.core.Evaluator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import java.util.*
 
 /**
@@ -10,12 +12,12 @@ import java.util.*
  * Tracks updates in the graph and updates dependencies.
  */
 class TableDataController(
-    private val evaluator: Evaluator,
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
+    private val evaluator: Evaluator by inject(Evaluator::class.java)
     private val data: MutableMap<CellPointer, TableCell> = mutableMapOf()
     private val dependenciesGraph = TableDependenciesGraph()
     private val onEvaluatedCallback = { cell: TableCell -> dependenciesGraph.updateDependencies(cell) }
-    private val scope = CoroutineScope(Dispatchers.Default)
     private val lock = Any()
 
     var dataExpiredCallback: ((CellPointer) -> Unit) = {}
@@ -32,7 +34,7 @@ class TableDataController(
             }
         }
 
-        scope.run {
+        scope.launch {
             synchronized(lock) {
                 data.toList().forEach { (_, cell) ->
                     cell.getEvaluationResult() // evaluate cell data and it's dependencies if needed.

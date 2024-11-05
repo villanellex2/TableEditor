@@ -1,11 +1,7 @@
 package com.echernikova.editor.table.model
 
-import com.echernikova.evaluator.core.Evaluator
-import org.mockito.kotlin.spy
-
 const val UPDATED_VALUE = 1024
-val evaluator = spy(Evaluator(emptyMap()))
-val underTest = TableDataController(evaluator = evaluator)
+val underTest by lazy { TableDataController() }
 
 fun fillTable() {
     underTest.apply {
@@ -29,16 +25,16 @@ fun fillTable() {
     }
 }
 
-val A3 = underTest.getOrCreateCell(CellPointer.fromString("A3")!!)
-val A1 = underTest.getOrCreateCell(CellPointer.fromString("A1")!!)
-val A2 = underTest.getOrCreateCell(CellPointer.fromString("A2")!!)
+val A3 by lazy { underTest.getOrCreateCell(CellPointer.fromString("A3")!!) }
+val A1 by lazy { underTest.getOrCreateCell(CellPointer.fromString("A1")!!) }
+val A2 by lazy { underTest.getOrCreateCell(CellPointer.fromString("A2")!!) }
 
-val B1 = underTest.getOrCreateCell(CellPointer.fromString("B1")!!)
-val B2 = underTest.getOrCreateCell(CellPointer.fromString("B2")!!)
-val B3 = underTest.getOrCreateCell(CellPointer.fromString("B3")!!)
+val B1 by lazy { underTest.getOrCreateCell(CellPointer.fromString("B1")!!) }
+val B2 by lazy { underTest.getOrCreateCell(CellPointer.fromString("B2")!!) }
+val B3 by lazy { underTest.getOrCreateCell(CellPointer.fromString("B3")!!) }
 
-val C1 = underTest.getOrCreateCell(CellPointer.fromString("C1")!!)
+val C1 by lazy { underTest.getOrCreateCell(CellPointer.fromString("C1")!!) }
 
-val D1 = underTest.getOrCreateCell(CellPointer.fromString("D1")!!)
-val D2 = underTest.getOrCreateCell(CellPointer.fromString("D2")!!)
-val D3 = underTest.getOrCreateCell(CellPointer.fromString("D3")!!)
+val D1 by lazy { underTest.getOrCreateCell(CellPointer.fromString("D1")!!) }
+val D2 by lazy { underTest.getOrCreateCell(CellPointer.fromString("D2")!!) }
+val D3 by lazy { underTest.getOrCreateCell(CellPointer.fromString("D3")!!) }
