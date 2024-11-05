@@ -19,6 +19,9 @@ interface TableTheme {
     val tableSelectionBackgroundColor: Color
     val tableSelectionForegroundColor: Color
 
+    val tableEditorBackgroundColor: Color
+    val tableEditorForegroundColor: Color
+
     companion object {
         var currentTheme: TableTheme = LightTableTheme()
     }
@@ -39,4 +42,7 @@ class LightTableTheme: TableTheme {
 
     override val tableSelectionBackgroundColor = Color(0xE5EBFF)
     override val tableSelectionForegroundColor = Color(0x333333)
+
+    override val tableEditorBackgroundColor = Color(0xCDD9FF)
+    override val tableEditorForegroundColor = Color(0x1E1E1E)
 }

@@ -4,75 +4,56 @@ import com.echernikova.evaluator.core.Evaluator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.koin.core.context.GlobalContext.startKoin
-import org.koin.core.context.GlobalContext.stopKoin
-import org.koin.dsl.module
 import org.mockito.Mockito.times
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
-import java.util.Vector
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
+
+private const val UPDATED_VALUE = 1024
 
 class TableDataControllerInitTest {
     private val evaluator = spy(Evaluator(emptyMap()))
     private val dispatcher = StandardTestDispatcher()
-    private val underTest = TableDataController(CoroutineScope(dispatcher))
+    private val underTest = EvaluatingTableModel(initData(), evaluator, CoroutineScope(dispatcher))
 
-    @BeforeTest
-    fun startKoinInjection() {
-        startKoin {
-            modules(
-                module {
-                    single { evaluator }
-                }
-            )
-        }
-    }
-
-    @AfterTest
-    fun stopKoinInjection() {
-        stopKoin()
+    private fun initData(): Array<Array<String?>> {
+        val row0 = Array<String?>(10) { it.toString() }
+        val row1 = Array<String?>(10) { "=${'A' + it}1" }
+        return arrayOf(row0, row1)
     }
 
     @Test
     fun `TableData correctly init values`() {
-        initData()
 
-        for (i in 0..10) {
-           assertEquals(i.toString(), underTest.getCell(CellPointer(0, i))?.rawValue)
+        for (i in 0..9) {
+            assertEquals(i.toString(), underTest.getValueAt(CellPointer(0, i))?.rawValue)
         }
         for (i in 0..9) {
-            assertEquals("=${'A' + i}1", underTest.getCell(CellPointer(1, i))?.rawValue)
+            assertEquals("=${'A' + i}1", underTest.getValueAt(CellPointer(1, i))?.rawValue)
         }
     }
 
     @Test
     fun `TableData updates value in table and tries to update dependent cell`() = runTest(dispatcher) {
-        initData()
         advanceUntilIdle()
 
         verify(evaluator).evaluate("=${'A' + 1}1", underTest)
 
         val updatingCell = CellPointer(0, 2)
+        underTest.setValueAt(UPDATED_VALUE.toString(), 0, 2)
 
-        underTest.setValueToCell(updatingCell, UPDATED_VALUE.toString())
-
-        assertEquals(UPDATED_VALUE.toString(), underTest.getCell(updatingCell)?.rawValue)
+        assertEquals(UPDATED_VALUE.toString(), underTest.getValueAt(updatingCell)?.rawValue)
         verify(evaluator, times(2)).evaluate("=${'A' + 1}1", underTest)
         assertEquals(
             UPDATED_VALUE,
-            underTest.getCell(CellPointer.fromString("${'A' + 1}1")!!)?.getEvaluationResult()?.evaluatedValue
+            underTest.getValueAt(CellPointer.fromString("${'A' + 1}1")!!)?.getEvaluationResult()?.evaluatedValue
         )
     }
 
     @Test
     fun `TableData evaluates values only ones on init`() = runTest(dispatcher) {
-        initData()
         advanceUntilIdle()
 
         verify(evaluator, times(1)).evaluate("=${'A' + 1}1", underTest)
@@ -84,21 +65,5 @@ class TableDataControllerInitTest {
         verify(evaluator, times(1)).evaluate("2", underTest)
         verify(evaluator, times(1)).evaluate("3", underTest)
         verify(evaluator, times(1)).evaluate("4", underTest)
-    }
-
-    private fun initData() {
-        val row0 = Vector<Any?>()
-        for (i in 0..10) {
-            row0.add(i.toString())
-        }
-        val row1 = Vector<Any?>()
-        for (i in 0..9) {
-            row1.add("=${'A' + i}1")
-        }
-        val vector = Vector<Vector<Any?>>()
-        vector.add(row0)
-        vector.add(row1)
-
-        underTest.initData(vector)
     }
 }

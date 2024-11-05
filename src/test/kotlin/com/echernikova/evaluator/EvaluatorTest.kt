@@ -1,16 +1,20 @@
 package com.echernikova.evaluator
 
+import com.echernikova.editor.table.model.EvaluatingTableModel
 import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.editor.table.model.TableDataController
+import com.echernikova.editor.table.model.TableCell
+import com.echernikova.evaluator.core.DataEvaluationResult
 import com.echernikova.evaluator.core.Evaluator
-import com.echernikova.evaluator.core.tokenizing.Token
 import com.echernikova.evaluator.functions.*
-import com.echernikova.evaluator.operators.OperatorCellLink
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 import java.util.stream.Stream
+import kotlin.test.BeforeTest
 
 class EvaluatorTest {
 
@@ -25,38 +29,61 @@ class EvaluatorTest {
     ).associateBy { it.name }
 
     private val underTest = Evaluator(supportedFunc)
-    private val tableDataController = TableDataController()
+    private val viewModel = mock<EvaluatingTableModel>()
 
-    init {
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition!!, "false")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A2")).cellPosition!!, "true")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition!!, "5")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition!!, "1.0")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition!!, "= 3.0 + 5")
+    @BeforeTest
+    fun initTableMock() {
+        val A3mock = mock<TableCell>()
+        whenever(A3mock.getEvaluationResult()).doReturn(DataEvaluationResult(5, emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("A3")!!)).doReturn(A3mock)
 
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition!!, "Dog")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition!!, "Cat")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition!!, "Tiger")
 
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition!!, "17kg")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition!!, "2.5kg")
-        tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition!!, "80kg")
+        val A4mock = mock<TableCell>()
+        whenever(A4mock.getEvaluationResult()).doReturn(DataEvaluationResult(1.0, emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("A4")!!)).doReturn(A4mock)
+
+        val A5mock = mock<TableCell>()
+        whenever(A5mock.getEvaluationResult()).doReturn(DataEvaluationResult(3.0 + 5, emptySet())) // Пример: результат формулы "= 3.0 + 5"
+        whenever(viewModel.getValueAt(CellPointer.fromString("A5")!!)).doReturn(A5mock)
+
+        val C1mock = mock<TableCell>()
+        whenever(C1mock.getEvaluationResult()).doReturn(DataEvaluationResult("Dog", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("C1")!!)).doReturn(C1mock)
+
+        val C2mock = mock<TableCell>()
+        whenever(C2mock.getEvaluationResult()).doReturn(DataEvaluationResult("Cat", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("C2")!!)).doReturn(C2mock)
+
+        val C3mock = mock<TableCell>()
+        whenever(C3mock.getEvaluationResult()).doReturn(DataEvaluationResult("Tiger", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("C3")!!)).doReturn(C3mock)
+
+        val D1mock = mock<TableCell>()
+        whenever(D1mock.getEvaluationResult()).doReturn(DataEvaluationResult("17kg", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("D1")!!)).doReturn(D1mock)
+
+        val D2mock = mock<TableCell>()
+        whenever(D2mock.getEvaluationResult()).doReturn(DataEvaluationResult("2.5kg", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("D2")!!)).doReturn(D2mock)
+
+        val D3mock = mock<TableCell>()
+        whenever(D3mock.getEvaluationResult()).doReturn(DataEvaluationResult("80kg", emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString("D3")!!)).doReturn(D3mock)
     }
 
     companion object {
-
         private val animalWeightsTable = setOf(
-            OperatorCellLink(Token.Cell.CellLink("C1")).cellPosition,
-            OperatorCellLink(Token.Cell.CellLink("C2")).cellPosition,
-            OperatorCellLink(Token.Cell.CellLink("C3")).cellPosition,
-            OperatorCellLink(Token.Cell.CellLink("D1")).cellPosition,
-            OperatorCellLink(Token.Cell.CellLink("D2")).cellPosition,
-            OperatorCellLink(Token.Cell.CellLink("D3")).cellPosition,
+            CellPointer.fromString("C1"),
+            CellPointer.fromString("C2"),
+            CellPointer.fromString("C3"),
+            CellPointer.fromString("D1"),
+            CellPointer.fromString("D2"),
+            CellPointer.fromString("D3"),
         )
 
-        private val A3 = setOf(OperatorCellLink(Token.Cell.CellLink("A3")).cellPosition,)
-        private val A4 = setOf(OperatorCellLink(Token.Cell.CellLink("A4")).cellPosition,)
-        private val A5 = setOf(OperatorCellLink(Token.Cell.CellLink("A5")).cellPosition,)
+        private val A3 = setOf(CellPointer.fromString("A3"))
+        private val A4 = setOf(CellPointer.fromString("A4"))
+        private val A5 = setOf(CellPointer.fromString("A5"))
 
         private val A3A5 = A3 + A4 + A5
         private val A4A5 = A4 + A5
@@ -105,7 +132,7 @@ class EvaluatorTest {
     @ParameterizedTest(name = "Test case {0} = {1}, with dependencies = {2}")
     @MethodSource("testCases")
     fun `Evaluator evaluate cases`(expression: String, expected: Any, cellLinks: Set<CellPointer>) {
-        val output = underTest.evaluate(expression, tableDataController)
+        val output = underTest.evaluate(expression, viewModel)
 
         assertEquals(expected, output.evaluatedValue)
         assertEquals(cellLinks, output.cellDependencies)

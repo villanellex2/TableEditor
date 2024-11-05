@@ -11,13 +11,13 @@ import kotlin.test.assertFails
 
 class TokenizerTest {
 
-    @ParameterizedTest(name = "tokenizer parses input: {0}")
+    @ParameterizedTest(name = "successfully: {0}")
     @MethodSource("correct")
     fun `tokenizer correctly works with correct cases`(input: String, expected: Array<Token>) {
         runComparison(input, expected)
     }
 
-    @ParameterizedTest(name = "tokenizer failure on input: {0}")
+    @ParameterizedTest(name = "failed: {0}")
     @MethodSource("incorrect")
     fun `tokenizer fail on incorrect expressions`(input: String, errorMessage: String) {
         runComparisonForFail(input, errorMessage)
@@ -77,7 +77,7 @@ class TokenizerTest {
 
 
             Arguments.of(
-                "SUM(C1:C6; 5)",
+                "SUM(C1:C6, 5)",
                 arrayOf(
                     Token.Function("SUM"), Token.Bracket.LeftRound,
                     Token.Cell.CellLink("C1"), Token.Cell.CellDelimiter, Token.Cell.CellLink("C6"),

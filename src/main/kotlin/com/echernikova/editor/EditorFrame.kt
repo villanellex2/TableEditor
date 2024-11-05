@@ -38,8 +38,6 @@ class EditorFrame(
                 super.windowClosing(e)
             }
         })
-
-        frameViewModel.tableViewModel.evaluateData()
     }
 
     private fun setupFrame() {

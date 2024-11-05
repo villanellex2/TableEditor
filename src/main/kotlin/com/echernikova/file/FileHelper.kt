@@ -1,17 +1,15 @@
 package com.echernikova.file
 
-import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.evaluator.core.EvaluationResult
+import com.echernikova.editor.table.model.TableCell
 
 interface FileHelper {
     /**
      * Returns error message if error occurred on saving.
      */
     fun writeTable(
-        table: List<Array<String?>>,
-        mapEvaluated: Map<CellPointer, EvaluationResult<*>>,
+        table: List<Pair<Int, Array<TableCell?>>> ,
         filePath: String
     ): String?
 
-    fun readTable(filePath: String): List<Array<Any?>>?
+    fun readTable(filePath: String): List<Array<String?>>?
 }

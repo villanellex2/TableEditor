@@ -1,6 +1,6 @@
 package com.echernikova.file
 
-import com.echernikova.editor.table.model.CellPointer
+import com.echernikova.editor.table.model.TableCell
 import com.echernikova.evaluator.core.ErrorEvaluationResult
 import com.echernikova.evaluator.core.EvaluationResult
 import org.apache.poi.ss.usermodel.*
@@ -9,36 +9,33 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class XSSFileHelper : FileHelper {
-    override fun writeTable(
-        table: List<Array<String?>>,
-        mapEvaluated: Map<CellPointer, EvaluationResult<*>>,
-        filePath: String
-    ): String? {
+    override fun writeTable(table: List<Pair<Int, Array<TableCell?>>>, filePath: String): String? {
         val workbook: Workbook = XSSFWorkbook()
         val sheet: Sheet = workbook.createSheet("Table Data")
 
         runCatching {
             if (table.isNotEmpty()) {
-                val columnCount = table[0].size
+                val columnCount = table[0].second.size
 
                 for (row in table.indices) {
-                    val rowIndex = table[row][0]?.toInt() ?: row
+                    val rowIndex = table[row].first
                     val excelRow = sheet.createRow(rowIndex)
 
                     for (column in 1 until columnCount) {
-                        table[row][column]?.let { value ->
-                            val cell = excelRow.createCell(column - 1)
+                        val tableCell = table[row].second[column]
+                        val raw = tableCell?.rawValue
 
-                            val pointer = CellPointer(row, column)
-                            val result = mapEvaluated[pointer]
+                        if (tableCell == null || raw.isNullOrEmpty()) continue
 
-                            if (result is ErrorEvaluationResult) {
-                                workbook.close()
-                                return "Error on saving cell '$pointer'. ${result.evaluatedValue}"
-                            }
-
-                            cell.fillValue(value, result)
+                        val cell = excelRow.createCell(column - 1)
+                        val result = tableCell.getEvaluationResult()
+                        if (result is ErrorEvaluationResult) {
+                            workbook.close()
+                            return "Error on saving cell '${tableCell.pointer}'. ${result.evaluatedValue}"
                         }
+
+                        cell.fillValue(raw, result)
+
                     }
                 }
             }
@@ -54,7 +51,7 @@ class XSSFileHelper : FileHelper {
         return null
     }
 
-    override fun readTable(filePath: String): List<Array<Any?>>? {
+    override fun readTable(filePath: String): List<Array<String?>>? {
         val fileInputStream = runCatching {
             FileInputStream(filePath)
         }.getOrNull() ?: return null
@@ -67,7 +64,7 @@ class XSSFileHelper : FileHelper {
         }
 
         val sheet: Sheet = workbook.getSheetAt(0)
-        val data: MutableList<Array<Any?>> = mutableListOf()
+        val data: MutableList<Array<String?>> = mutableListOf()
 
         var currentRow = 0
         for (row in sheet) {
@@ -114,12 +111,7 @@ class XSSFileHelper : FileHelper {
         }
     }
 
-    private fun Cell.fillValue(rawValue: String, evaluationResult: EvaluationResult<*>?) {
-        if (evaluationResult?.evaluatedValue == null) {
-            setCellValue(rawValue)
-            return
-        }
-
+    private fun Cell.fillValue(rawValue: String, evaluationResult: EvaluationResult<*>) {
         if (rawValue.startsWith("=")) {
             runCatching {
                 cellFormula = rawValue.substring(1, rawValue.length)

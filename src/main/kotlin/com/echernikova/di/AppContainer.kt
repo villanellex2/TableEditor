@@ -1,6 +1,5 @@
 package com.echernikova.di
 
-import com.echernikova.editor.table.TableViewModel
 import com.echernikova.evaluator.core.Evaluator
 import com.echernikova.evaluator.functions.*
 import com.echernikova.fileopening.FileOpeningFrameViewModel
@@ -24,7 +23,6 @@ val evaluatorModule = module {
 
 val appModule = module {
     single { FileOpeningFrameViewModel() }
-    factory { (initialData: Array<Array<Any?>>) -> TableViewModel(initialData, get()) }
 }
 
 fun startDependencyInjection() {

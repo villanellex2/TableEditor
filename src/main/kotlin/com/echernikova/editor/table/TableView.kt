@@ -1,6 +1,6 @@
 package com.echernikova.editor.table
 
-import com.echernikova.editor.table.model.CellPointer
+import com.echernikova.editor.table.model.EvaluatingTableModel
 import com.echernikova.evaluator.core.ErrorEvaluationResult
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -8,7 +8,7 @@ import javax.swing.JTable
 import javax.swing.ToolTipManager
 
 class TableView(
-    private val tableModel: TableViewModel
+    private val tableModel: EvaluatingTableModel
 ) : JTable(tableModel) {
 
     init {
@@ -21,7 +21,7 @@ class TableView(
         val colIndex = columnAtPoint(p)
 
         runCatching {
-            val value = tableModel.tableDataController.getCell(CellPointer(rowIndex, colIndex))?.getEvaluationResult()
+            val value = tableModel.getValueAt(rowIndex, colIndex)?.getEvaluationResult()
             if (value is ErrorEvaluationResult) {
                 return value.evaluatedValue
             }
@@ -39,7 +39,8 @@ class TableView(
 
         rowHeight = 20
 
-        setDefaultRenderer(Any::class.java, TableCellRenderer(tableModel.tableDataController))
+        setDefaultRenderer(Any::class.java, TableCellRenderer(tableModel))
+        setDefaultEditor(Any::class.java, TableCellEditor())
         ToolTipManager.sharedInstance().registerComponent(this)
         ToolTipManager.sharedInstance().initialDelay = 0
     }

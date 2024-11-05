@@ -34,7 +34,7 @@ class FileOpeningFrameViewModel {
         return FileOpeningStatus.SUCCESS
     }
 
-    private fun openTable(file: File, data: List<Array<Any?>>? = null) {
+    private fun openTable(file: File, data: List<Array<String?>>? = null) {
         val editorViewModel = EditorViewModel(file, data?.toTypedArray())
         EditorFrame(editorViewModel).isVisible = true
     }

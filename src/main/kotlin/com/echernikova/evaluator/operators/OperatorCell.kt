@@ -44,7 +44,10 @@ private fun getCellEvaluationResult(context: Context, cellPointer: CellPointer?)
         return ErrorEvaluationResult("Incorrect cell link", emptySet())
     }
 
-    val link = context.table.getOrCreateCell(cellPointer)
+    val link = context.table.getValueAt(cellPointer) ?: run {
+        return DataEvaluationResult(EvaluationResult.Empty, setOf(cellPointer))
+    }
+
     if (link.evaluating) {
         return ErrorEvaluationResult(
             evaluatedValue = "Cycle dependencies!",

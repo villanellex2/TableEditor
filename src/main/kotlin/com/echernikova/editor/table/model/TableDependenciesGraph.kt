@@ -70,7 +70,7 @@ class TableDependenciesGraph {
     }
 
     private fun clearCellDependencies(cellPointer: CellPointer) {
-        reverseDependencies[cellPointer]?.forEach { dep ->
+        reverseDependencies[cellPointer]?.toList()?.forEach { dep ->
             dependencies[dep]?.remove(cellPointer)
         }
         reverseDependencies[cellPointer]?.clear()
