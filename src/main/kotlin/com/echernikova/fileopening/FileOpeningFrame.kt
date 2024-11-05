@@ -40,12 +40,14 @@ class FileOpeningFrame(
 
             gridwidth = 1
             gridy = 1
-            add(createFileActionButton("<html>Create<br>new table</html>", FileOpeningFrameTheme.createButtonBackgroundColor) {
+            add(createFileActionButton("<html>Create<br>new table</html>",
+                FileOpeningFrameTheme.currentTheme.createButtonBackgroundColor
+            ) {
                 handleCreateFileAction()
             }.apply { preferredSize = Dimension(200, 200) }, this)
 
             gridx = 1
-            add(createFileActionButton("<html>Open<br>existing table</html>", FileOpeningFrameTheme.openButtonBackgroundColor) {
+            add(createFileActionButton("<html>Open<br>existing table</html>", FileOpeningFrameTheme.currentTheme.openButtonBackgroundColor) {
                 handleOpenFileAction()
             }.apply { preferredSize = Dimension(200, 200) }, this)
         }
@@ -68,9 +70,12 @@ class FileOpeningFrame(
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             val file = fileChooser.selectedFile
             when (viewModel.onOpenExistingTable(file)) {
-                FileOpeningFrameViewModel.FileOpeningStatus.FILE_NOT_FOUND -> showErrorDialog("File does not exist.", "Can't open file.")
-                FileOpeningFrameViewModel.FileOpeningStatus.CANNOT_READ -> showErrorDialog("Cannot read data in ${file.path}.", "Can't open file.")
-                FileOpeningFrameViewModel.FileOpeningStatus.ERROR_ON_TABLE_READING -> showErrorDialog("Incorrect table data. Error on reading.", "Can't open file.")
+                FileOpeningFrameViewModel.FileOpeningStatus.FILE_NOT_FOUND ->
+                    showErrorDialog("File does not exist.", "Can't open file.")
+                FileOpeningFrameViewModel.FileOpeningStatus.CANNOT_READ ->
+                    showErrorDialog("Cannot read data in ${file.path}.", "Can't open file.")
+                FileOpeningFrameViewModel.FileOpeningStatus.ERROR_ON_TABLE_READING ->
+                    showErrorDialog("Incorrect table data. Error on reading.", "Can't open file.")
                 FileOpeningFrameViewModel.FileOpeningStatus.SUCCESS -> dispose()
                 else -> showErrorDialog("Unsupported file type ${file.path}.", "Can't open file.")
             }
@@ -79,20 +84,22 @@ class FileOpeningFrame(
 
     private fun createOpenRecentButton(): JButton {
         val path = viewModel.getRecentOpenFile()
-        val buttonText = "<html>Open recent file<div style='font-size: 11px; color: rgb(100,100,100); font-family: monospace;'>${path ?: "no recent path.."}</div></html>"
-
+        val buttonText = """
+            <html>Open recent file<div style='font-size: 11px; color:
+            rgb(100,100,100); font-family: monospace;'>${path ?: "no recent path.."}</div></html>"
+        """.trimIndent()
         return createButtonBase(buttonText, path != null).apply {
             horizontalAlignment = SwingConstants.LEFT
             background = if (path != null && File(path).exists()) {
                 addActionListener {
                     when (viewModel.onOpenExistingTable(File(path))) {
                         FileOpeningFrameViewModel.FileOpeningStatus.SUCCESS -> dispose()
-                        else -> background = FileOpeningFrameTheme.openLastButtonBackgroundColorInactive
+                        else -> background = FileOpeningFrameTheme.currentTheme.openLastButtonBackgroundColorInactive
                     }
                 }
-                FileOpeningFrameTheme.openLastButtonBackgroundColorActive
+                FileOpeningFrameTheme.currentTheme.openLastButtonBackgroundColorActive
             } else {
-                FileOpeningFrameTheme.openLastButtonBackgroundColorInactive
+                FileOpeningFrameTheme.currentTheme.openLastButtonBackgroundColorInactive
             }
         }
     }
@@ -105,8 +112,8 @@ class FileOpeningFrame(
     }
 
     private fun createButtonBase(text: String, isActive: Boolean) = RoundedButton(text, 25).apply {
-        font = font.deriveFont(FileOpeningFrameTheme.buttonsFontSize)
-        foreground = FileOpeningFrameTheme.buttonFontColor
+        font = font.deriveFont(FileOpeningFrameTheme.currentTheme.buttonsFontSize)
+        foreground = FileOpeningFrameTheme.currentTheme.buttonFontColor
         horizontalAlignment = SwingConstants.CENTER
 
         if (isActive) {

@@ -26,9 +26,7 @@ open class EvaluatingTableModel(
         initialData?.forEachIndexed { row, array ->
             array.forEachIndexed { column, value ->
                 val cellPointer = CellPointer(row, column)
-                dataVector[row][column] = TableCell(value, cellPointer, this, evaluator) { cell ->
-                    dependenciesGraph.updateDependencies(cell)
-                }
+                dataVector[row][column] = createTableCell(cellPointer, value)
             }
         }
 
@@ -42,27 +40,28 @@ open class EvaluatingTableModel(
     }
 
     fun getValueAt(pointer: CellPointer): TableCell? {
-        if (pointer.row >= rowCount) loadNextPage()
-        return super.getValueAt(pointer.row, pointer.column) as? TableCell
+        synchronized(lock) {
+            while (pointer.row >= rowCount) loadNextPage()
+            return getValueAt(pointer.row, pointer.column) as? TableCell
+        }
     }
 
     fun setValueAt(value: Any?, pointer: CellPointer) {
-        if (pointer.column >= columnCount) loadNextPage()
+        while (pointer.column >= columnCount) loadNextPage()
         value ?: return
         setValueToCell(pointer, value)
     }
 
     override fun getValueAt(row: Int, column: Int): TableCell? {
-        if (row < 0 || row >= rowCount || column < 0 || column >= columnCount) {
-            loadNextPage()
-            return null
+        synchronized(lock) {
+            while (row >= rowCount || column >= columnCount) loadNextPage()
+            return super.getValueAt(row, column) as? TableCell
         }
-        return super.getValueAt(row, column) as? TableCell
     }
 
 
     override fun setValueAt(value: Any?, row: Int, column: Int) {
-        if (column >= columnCount) loadNextPage()
+        while (column >= columnCount) loadNextPage()
         value ?: return
         setValueToCell(CellPointer(row, column), value)
     }

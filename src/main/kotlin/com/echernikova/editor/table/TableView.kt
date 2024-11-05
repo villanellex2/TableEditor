@@ -1,6 +1,8 @@
 package com.echernikova.editor.table
 
 import com.echernikova.editor.table.model.EvaluatingTableModel
+import com.echernikova.editor.table.renderers.TableCellEditor
+import com.echernikova.editor.table.renderers.TableCellRenderer
 import com.echernikova.evaluator.core.ErrorEvaluationResult
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -35,7 +37,7 @@ class TableView(
         setShowGrid(true)
         gridColor = TableTheme.currentTheme.gridColor
         selectionBackground = TableTheme.currentTheme.tableSelectionBackgroundColor
-        selectionForeground = TableTheme.currentTheme.tableSelectionForegroundColor
+        selectionForeground = TableTheme.currentTheme.tableSelectionFontColor
 
         rowHeight = 20
 

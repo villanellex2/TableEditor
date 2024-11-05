@@ -33,61 +33,20 @@ class EvaluatorTest {
 
     @BeforeTest
     fun initTableMock() {
-        val A3mock = mock<TableCell>()
-        whenever(A3mock.getEvaluationResult()).doReturn(DataEvaluationResult(5, emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("A3")!!)).doReturn(A3mock)
+        createMockCell("A3", 5)
+        createMockCell("A4", 1.0)
+        createMockCell("A5", "= 3.0 + 5")
 
+        createMockCell("C1", "Dog")
+        createMockCell("C2", "Cat")
+        createMockCell("C3", "Tiger")
 
-        val A4mock = mock<TableCell>()
-        whenever(A4mock.getEvaluationResult()).doReturn(DataEvaluationResult(1.0, emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("A4")!!)).doReturn(A4mock)
-
-        val A5mock = mock<TableCell>()
-        whenever(A5mock.getEvaluationResult()).doReturn(DataEvaluationResult(3.0 + 5, emptySet())) // Пример: результат формулы "= 3.0 + 5"
-        whenever(viewModel.getValueAt(CellPointer.fromString("A5")!!)).doReturn(A5mock)
-
-        val C1mock = mock<TableCell>()
-        whenever(C1mock.getEvaluationResult()).doReturn(DataEvaluationResult("Dog", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("C1")!!)).doReturn(C1mock)
-
-        val C2mock = mock<TableCell>()
-        whenever(C2mock.getEvaluationResult()).doReturn(DataEvaluationResult("Cat", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("C2")!!)).doReturn(C2mock)
-
-        val C3mock = mock<TableCell>()
-        whenever(C3mock.getEvaluationResult()).doReturn(DataEvaluationResult("Tiger", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("C3")!!)).doReturn(C3mock)
-
-        val D1mock = mock<TableCell>()
-        whenever(D1mock.getEvaluationResult()).doReturn(DataEvaluationResult("17kg", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("D1")!!)).doReturn(D1mock)
-
-        val D2mock = mock<TableCell>()
-        whenever(D2mock.getEvaluationResult()).doReturn(DataEvaluationResult("2.5kg", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("D2")!!)).doReturn(D2mock)
-
-        val D3mock = mock<TableCell>()
-        whenever(D3mock.getEvaluationResult()).doReturn(DataEvaluationResult("80kg", emptySet()))
-        whenever(viewModel.getValueAt(CellPointer.fromString("D3")!!)).doReturn(D3mock)
+        createMockCell("D1", "17kg")
+        createMockCell("D2", "2.5kg")
+        createMockCell("D3", "80kg")
     }
 
     companion object {
-        private val animalWeightsTable = setOf(
-            CellPointer.fromString("C1"),
-            CellPointer.fromString("C2"),
-            CellPointer.fromString("C3"),
-            CellPointer.fromString("D1"),
-            CellPointer.fromString("D2"),
-            CellPointer.fromString("D3"),
-        )
-
-        private val A3 = setOf(CellPointer.fromString("A3"))
-        private val A4 = setOf(CellPointer.fromString("A4"))
-        private val A5 = setOf(CellPointer.fromString("A5"))
-
-        private val A3A5 = A3 + A4 + A5
-        private val A4A5 = A4 + A5
-
         @JvmStatic
         fun testCases(): Stream<Arguments> = Stream.of(
             Arguments.of("=+-+-+-1", -1, emptySet<CellPointer>()),
@@ -127,6 +86,24 @@ class EvaluatorTest {
             Arguments.of("=VLOOKUP(\"Dog\",C1:D3,2)", "17kg", animalWeightsTable),
             Arguments.of("=VLOOKUP(\"17kg\",C1:D3,1)", "Dog", animalWeightsTable),
         )
+
+        // Cell dependencies
+
+        private val animalWeightsTable = setOf(
+            CellPointer.fromString("C1"),
+            CellPointer.fromString("C2"),
+            CellPointer.fromString("C3"),
+            CellPointer.fromString("D1"),
+            CellPointer.fromString("D2"),
+            CellPointer.fromString("D3"),
+        )
+
+        private val A3 = setOf(CellPointer.fromString("A3"))
+        private val A4 = setOf(CellPointer.fromString("A4"))
+        private val A5 = setOf(CellPointer.fromString("A5"))
+
+        private val A3A5 = A3 + A4 + A5
+        private val A4A5 = A4 + A5
     }
 
     @ParameterizedTest(name = "Test case {0} = {1}, with dependencies = {2}")
@@ -136,5 +113,12 @@ class EvaluatorTest {
 
         assertEquals(expected, output.evaluatedValue)
         assertEquals(cellLinks, output.cellDependencies)
+    }
+
+    private fun createMockCell(position: String, value: Any): TableCell {
+        val mock = mock<TableCell>()
+        whenever(mock.getEvaluationResult()).doReturn(DataEvaluationResult(value, emptySet()))
+        whenever(viewModel.getValueAt(CellPointer.fromString(position)!!)).doReturn(mock)
+        return mock
     }
 }

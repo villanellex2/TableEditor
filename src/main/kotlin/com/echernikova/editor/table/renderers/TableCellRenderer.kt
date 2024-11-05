@@ -1,8 +1,10 @@
-package com.echernikova.editor.table
+package com.echernikova.editor.table.renderers
 
+import com.echernikova.editor.table.TableTheme
 import com.echernikova.editor.table.model.EvaluatingTableModel
-import com.echernikova.editor.table.model.TableCell
-import com.echernikova.evaluator.core.*
+import com.echernikova.evaluator.core.DataEvaluationResult
+import com.echernikova.evaluator.core.ErrorEvaluationResult
+import com.echernikova.evaluator.core.EvaluationResult
 import java.awt.Component
 import javax.swing.JLabel
 import javax.swing.JTable
@@ -10,6 +12,7 @@ import javax.swing.border.EmptyBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 private const val ERROR_MESSAGE = "ERROR!"
+
 
 class TableCellRenderer(
     private val viewModel: EvaluatingTableModel,
@@ -26,14 +29,17 @@ class TableCellRenderer(
         val rawCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
         val cell = rawCell as? JLabel ?: return rawCell
 
+        cell.setNormalValue()
+
         if (column == 0) {
-            setNormalValue(null)
             cell.text = (row + 1).toString()
             cell.horizontalAlignment = LEFT
+            cell.font = TableTheme.currentTheme.markersCellFont
+            cell.foreground = TableTheme.currentTheme.markersCellFontColor
             return cell
         }
 
-        val cellEvaluationData = viewModel.getValueAt(row, column) as? TableCell ?: return cell
+        val cellEvaluationData = viewModel.getValueAt(row, column) ?: return cell
 
         val result = cellEvaluationData.getEvaluationResult()
         val evaluatedResult = result.evaluatedValue
@@ -42,7 +48,7 @@ class TableCellRenderer(
             is ErrorEvaluationResult -> {
                 cell.horizontalAlignment = CENTER
                 cell.font = TableTheme.currentTheme.errorCellFont
-                cell.foreground = TableTheme.currentTheme.errorCellColor
+                cell.foreground = TableTheme.currentTheme.errorCellFontColor
                 cell.text = ERROR_MESSAGE
             }
 
@@ -50,12 +56,14 @@ class TableCellRenderer(
                 when (evaluatedResult) {
                     is Int, is String -> {
                         cell.horizontalAlignment = RIGHT
-                        setNormalValue(result)
+                        cell.text = result.evaluatedValue?.toString() ?: ""
                     }
+
                     is Double, is Boolean -> {
                         cell.horizontalAlignment = LEFT
-                        setNormalValue(result)
+                        cell.text = result.evaluatedValue?.toString() ?: ""
                     }
+
                     is EvaluationResult.Empty -> {
                         cell.text = ""
                     }
@@ -67,9 +75,8 @@ class TableCellRenderer(
         return cell
     }
 
-    private fun JLabel.setNormalValue(evaluationResult: EvaluationResult<*>?) {
+    private fun JLabel.setNormalValue() {
         font = TableTheme.currentTheme.normalCellFont
-        foreground = TableTheme.currentTheme.normalCellColor
-        text = evaluationResult?.evaluatedValue.toString()
+        foreground = TableTheme.currentTheme.normalCellFontColor
     }
 }

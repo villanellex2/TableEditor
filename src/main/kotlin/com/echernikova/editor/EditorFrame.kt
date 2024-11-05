@@ -2,6 +2,7 @@ package com.echernikova.editor
 
 import com.echernikova.editor.table.TableTheme
 import com.echernikova.editor.table.TableView
+import com.echernikova.editor.table.renderers.HeaderRenderer
 import com.echernikova.fileopening.FileOpeningFrame
 import com.echernikova.fileopening.FileOpeningFrameViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +16,7 @@ import javax.swing.border.EmptyBorder
 
 private const val DEFAULT_CELL_MIN_WIDTH = 30
 private const val DEFAULT_CELL_WIDTH = 120
+private const val MINI_CELL_WIDTH = 60
 
 class EditorFrame(
     private val frameViewModel: EditorViewModel,
@@ -30,6 +32,7 @@ class EditorFrame(
         setupFrame()
         scrollPane.setupScrollBar()
         statusText.setupStatusText()
+        table.configureColumns()
         setupSaveShortcut()
 
         addWindowListener(object : java.awt.event.WindowAdapter() {
@@ -66,12 +69,23 @@ class EditorFrame(
             fill = GridBagConstraints.BOTH
         }
         this@EditorFrame.add(this, constraints)
+    }
 
-        for (i in 0 until table.columnCount) {
-            val column = table.columnModel.getColumn(i)
+    private fun JTable.configureColumns() {
+        val zeroColumn = columnModel.getColumn(0)
+
+        zeroColumn.minWidth = DEFAULT_CELL_MIN_WIDTH
+        zeroColumn.preferredWidth = MINI_CELL_WIDTH
+        zeroColumn.maxWidth = MINI_CELL_WIDTH + 20
+
+        for (i in 1 until table.columnCount) {
+            val column = columnModel.getColumn(i)
+
             column.minWidth = DEFAULT_CELL_MIN_WIDTH
             column.preferredWidth = DEFAULT_CELL_WIDTH
         }
+
+        tableHeader.defaultRenderer = HeaderRenderer()
     }
 
     private fun JLabel.setupStatusText() {

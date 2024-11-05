@@ -1,5 +1,6 @@
-package com.echernikova.editor.table
+package com.echernikova.editor.table.renderers
 
+import com.echernikova.editor.table.TableTheme
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.editor.table.model.TableCell
 import java.awt.Component
@@ -15,7 +16,7 @@ class TableCellEditor : AbstractCellEditor(), TableCellEditor {
     init {
         textField.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
         textField.background = TableTheme.currentTheme.tableEditorBackgroundColor
-        textField.foreground = TableTheme.currentTheme.tableEditorForegroundColor
+        textField.foreground = TableTheme.currentTheme.tableEditorFontColor
         textField.font = TableTheme.currentTheme.normalCellFont
 
         textField.componentOrientation = ComponentOrientation.LEFT_TO_RIGHT

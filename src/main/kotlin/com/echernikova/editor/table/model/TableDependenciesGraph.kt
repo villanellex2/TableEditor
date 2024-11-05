@@ -3,6 +3,7 @@ package com.echernikova.editor.table.model
 class TableDependenciesGraph {
     private val dependencies: MutableMap<CellPointer, MutableSet<CellPointer>> = mutableMapOf()
     private val reverseDependencies: MutableMap<CellPointer, MutableSet<CellPointer>> = mutableMapOf()
+    private val lock = Any()
 
     /**
      * Evaluates cell which depends on @param cell and should be updated.
@@ -37,43 +38,49 @@ class TableDependenciesGraph {
         val cellsInCycle = mutableSetOf<CellPointer>()
 
         fun visit(cell: CellPointer) {
-            if (cell in visiting) {
-                val cycleStartIndex = cyclePath.indexOf(cell)
-                val cycle = cyclePath.subList(cycleStartIndex, cyclePath.size)
+            synchronized(lock) {
+                if (cell in visiting) {
+                    val cycleStartIndex = cyclePath.indexOf(cell)
+                    val cycle = cyclePath.subList(cycleStartIndex, cyclePath.size)
 
-                sortedCells.removeAll(cycle)
-                cellsInCycle.addAll(cycle)
+                    sortedCells.removeAll(cycle)
+                    cellsInCycle.addAll(cycle)
+                    visited.add(cell)
+                    return
+                }
+                if (cell in visited) {
+                    return
+                }
+
+                visiting.add(cell)
+                cyclePath.add(cell)
+                dependencies[cell]?.forEach { visit(it) }
+
+                visiting.remove(cell)
                 visited.add(cell)
-                return
+                sortedCells.add(cell)
+                cyclePath.removeAt(cyclePath.lastIndex)
             }
-            if (cell in visited) {
-                return
-            }
-
-            visiting.add(cell)
-            cyclePath.add(cell)
-            dependencies[cell]?.forEach { visit(it) }
-
-            visiting.remove(cell)
-            visited.add(cell)
-            sortedCells.add(cell)
-            cyclePath.removeAt(cyclePath.lastIndex)
         }
 
         visit(startCell.pointer)
-        return DependenciesOutput(sortedCells, cellsInCycle.associateWith { this.reverseDependencies[it] })
+        return DependenciesOutput(sortedCells, synchronized(lock) { cellsInCycle.associateWith { this.reverseDependencies[it] }})
     }
 
     private fun addDependency(dependent: CellPointer, dependency: CellPointer) {
-        dependencies.getOrPut(dependency) { mutableSetOf() }.add(dependent)
-        reverseDependencies.getOrPut(dependent) { mutableSetOf() }.add(dependency)
+        synchronized(lock) {
+            dependencies.getOrPut(dependency) { mutableSetOf() }.add(dependent)
+            reverseDependencies.getOrPut(dependent) { mutableSetOf() }.add(dependency)
+        }
     }
 
     private fun clearCellDependencies(cellPointer: CellPointer) {
-        reverseDependencies[cellPointer]?.toList()?.forEach { dep ->
-            dependencies[dep]?.remove(cellPointer)
+        synchronized(lock) {
+            reverseDependencies[cellPointer]?.toList()?.forEach { dep ->
+                dependencies[dep]?.remove(cellPointer)
+            }
+            reverseDependencies[cellPointer]?.clear()
         }
-        reverseDependencies[cellPointer]?.clear()
     }
 
     data class DependenciesOutput(
