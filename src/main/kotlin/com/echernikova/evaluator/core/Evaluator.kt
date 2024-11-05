@@ -14,7 +14,6 @@ open class Evaluator (
             cellDependencies = emptySet()
         )
 
-        // todo: поэскейпить стр
         if (value.startsWith("=")) {
             val context = Context(tableDataController, declaredFunctions)
             val substring = value.substring(1, value.length)

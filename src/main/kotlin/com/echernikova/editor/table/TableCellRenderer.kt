@@ -1,7 +1,7 @@
 package com.echernikova.editor.table
 
-import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.editor.table.model.TableDataController
+import com.echernikova.editor.table.model.EvaluatingTableModel
+import com.echernikova.editor.table.model.TableCell
 import com.echernikova.evaluator.core.*
 import java.awt.Component
 import javax.swing.JLabel
@@ -12,7 +12,7 @@ import javax.swing.table.DefaultTableCellRenderer
 private const val ERROR_MESSAGE = "ERROR!"
 
 class TableCellRenderer(
-    private val tableDataController: TableDataController,
+    private val viewModel: EvaluatingTableModel,
 ) : DefaultTableCellRenderer() {
 
     override fun getTableCellRendererComponent(
@@ -33,7 +33,8 @@ class TableCellRenderer(
             return cell
         }
 
-        val cellEvaluationData = tableDataController.getCell(CellPointer(row, column)) ?: return cell
+        val cellEvaluationData = viewModel.getValueAt(row, column) as? TableCell ?: return cell
+
         val result = cellEvaluationData.getEvaluationResult()
         val evaluatedResult = result.evaluatedValue
 
