@@ -25,7 +25,7 @@ class EvaluatorTest {
     ).associateBy { it.name }
 
     private val underTest = Evaluator(supportedFunc)
-    private val tableDataController = TableDataController(evaluator = underTest)
+    private val tableDataController = TableDataController()
 
     init {
         tableDataController.setValueToCell(OperatorCellLink(Token.Cell.CellLink("A1")).cellPosition!!, "false")

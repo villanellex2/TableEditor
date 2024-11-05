@@ -1,9 +1,12 @@
 package com.echernikova.editor
 
-import com.echernikova.editor.table.TableTheme.statusBarTextSize
+import com.echernikova.editor.table.TableTheme
 import com.echernikova.editor.table.TableView
+import com.echernikova.fileopening.FileOpeningFrame
+import com.echernikova.fileopening.FileOpeningFrameViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import org.koin.java.KoinJavaComponent.getKoin
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -14,19 +17,28 @@ private const val DEFAULT_CELL_MIN_WIDTH = 30
 private const val DEFAULT_CELL_WIDTH = 120
 
 class EditorFrame(
-    private val frameViewModel: EditorViewModel
+    private val frameViewModel: EditorViewModel,
 ) : JFrame() {
     private val table = TableView(frameViewModel.tableViewModel)
     private val scrollPane = JScrollPane(table)
     private val statusText = JLabel()
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+    private val statusUpdateListener = StatusUpdateListener(::onStatusUpdated, scope)
+
     init {
         setupFrame()
-        setupTable()
-        setupStatusText()
+        scrollPane.setupScrollBar()
+        statusText.setupStatusText()
         setupSaveShortcut()
 
-        frameViewModel.onStatusUpdateListener = StatusUpdateListener(::onStatusUpdated, CoroutineScope(Dispatchers.Default))
+        addWindowListener(object : java.awt.event.WindowAdapter() {
+            override fun windowClosing(e: java.awt.event.WindowEvent) {
+                FileOpeningFrame(getKoin().get<FileOpeningFrameViewModel>()).isVisible = true
+                super.windowClosing(e)
+            }
+        })
+
         frameViewModel.tableViewModel.evaluateData()
     }
 
@@ -40,17 +52,13 @@ class EditorFrame(
         createMenuBar()
     }
 
-    private fun setupTable() {
-        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-        scrollPane.verticalScrollBar.addAdjustmentListener {
+    private fun JScrollPane.setupScrollBar() {
+        horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        verticalScrollBar.addAdjustmentListener {
             if (isScrolledToBottom()) {
                 frameViewModel.tableViewModel.loadNextPage()
             }
         }
-        addTableToLayout()
-    }
-
-    private fun addTableToLayout() {
         val constraints = GridBagConstraints().apply {
             gridx = 0
             gridy = 0
@@ -59,7 +67,7 @@ class EditorFrame(
             weighty = 1.0
             fill = GridBagConstraints.BOTH
         }
-        add(scrollPane, constraints)
+        this@EditorFrame.add(this, constraints)
 
         for (i in 0 until table.columnCount) {
             val column = table.columnModel.getColumn(i)
@@ -68,14 +76,10 @@ class EditorFrame(
         }
     }
 
-    private fun setupStatusText() {
-        statusText.border = EmptyBorder(0, 30, 0, 30)
-        statusText.font = statusText.font.deriveFont(statusBarTextSize)
-        statusText.preferredSize = Dimension(statusText.width, 20)
-        addStatusTextToLayout()
-    }
+    private fun JLabel.setupStatusText() {
+        border = EmptyBorder(0, 30, 0, 30)
+        font = statusText.font.deriveFont(TableTheme.currentTheme.statusBarTextSize)
 
-    private fun addStatusTextToLayout() {
         val constraints = GridBagConstraints().apply {
             gridx = 0
             gridy = 1
@@ -83,7 +87,7 @@ class EditorFrame(
             weightx = 0.0
             weighty = 0.0
         }
-        add(statusText, constraints)
+        this@EditorFrame.add(this, constraints)
     }
 
     private fun onStatusUpdated(status: String, type: Status) {
@@ -94,7 +98,7 @@ class EditorFrame(
     private fun setupSaveShortcut() {
         val saveAction = object : AbstractAction() {
             override fun actionPerformed(e: ActionEvent?) {
-                frameViewModel.onSaveClicked()
+                frameViewModel.onSaveClicked(statusUpdateListener)
             }
         }
         val inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
@@ -112,7 +116,7 @@ class EditorFrame(
 
     private fun createMenuBar() {
         System.setProperty("apple.laf.useScreenMenuBar", "true")
-        jMenuBar = EditorMenuBar(frameViewModel)
+        jMenuBar = EditorMenuBar(frameViewModel, statusUpdateListener)
     }
 
     private fun isScrolledToBottom(): Boolean {

@@ -28,6 +28,7 @@ class TableViewModel(
         }
     }
 
+
     fun evaluateData() {
         tableDataController.initData(dataVector)
     }

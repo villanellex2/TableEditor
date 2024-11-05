@@ -1,9 +1,31 @@
 package com.echernikova.editor.table.model
 
+import com.echernikova.evaluator.core.Evaluator
 import org.junit.jupiter.api.Test
+import org.koin.core.context.GlobalContext.startKoin
+import org.koin.core.context.GlobalContext.stopKoin
+import org.koin.dsl.module
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 class TableDataControllerTest {
+
+    @BeforeTest
+    fun startKoinInjection() {
+        startKoin {
+            modules(
+                module {
+                    single { Evaluator(emptyMap()) }
+                }
+            )
+        }
+    }
+
+    @AfterTest
+    fun stopKoinInjection() {
+        stopKoin()
+    }
 
     @Test
     fun `TableData recalculates dependencies`() {

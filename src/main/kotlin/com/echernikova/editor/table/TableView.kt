@@ -2,7 +2,6 @@ package com.echernikova.editor.table
 
 import com.echernikova.editor.table.model.CellPointer
 import com.echernikova.evaluator.core.ErrorEvaluationResult
-import java.awt.Color
 import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.JTable
@@ -34,9 +33,9 @@ class TableView(
         autoResizeMode = AUTO_RESIZE_OFF
 
         setShowGrid(true)
-        gridColor = TableTheme.gridColor
-        selectionBackground = TableTheme.tableSelectionBackgroundColor
-        selectionForeground = TableTheme.tableSelectionForegroundColor
+        gridColor = TableTheme.currentTheme.gridColor
+        selectionBackground = TableTheme.currentTheme.tableSelectionBackgroundColor
+        selectionForeground = TableTheme.currentTheme.tableSelectionForegroundColor
 
         rowHeight = 20
 

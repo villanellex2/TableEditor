@@ -1,6 +1,7 @@
 package com.echernikova.editor
 
 import com.echernikova.editor.table.TableViewModel
+import com.echernikova.editor.table.model.TableDataController
 import com.echernikova.file.SupportedExtensions
 import com.echernikova.fileopening.LastOpenFile
 import java.io.File
@@ -11,30 +12,33 @@ private val INCORRECT_FILE_TYPE = { extension: String -> "Couldn't save file wit
 
 class EditorViewModel(
     private val file: File,
-    val tableViewModel: TableViewModel,
+    initialData: Array<Array<Any?>>?,
 ) {
-    var onStatusUpdateListener: StatusUpdateListener? = null
-
+    val tableViewModel: TableViewModel = TableViewModel(initialData, TableDataController())
     val editedFileName: String = file.path.substringAfterLast('/')
 
-    fun onSaveClicked() {
-        onStatusUpdateListener?.onStatusUpdated(SAVING_IN_PROCESS, Status.INFO)
+    fun onSaveClicked(onStatusUpdateListener: StatusUpdateListener) {
+        onStatusUpdateListener.onStatusUpdated(SAVING_IN_PROCESS, Status.INFO)
         val extension = SupportedExtensions.fromFile(file) ?: run {
-            onStatusUpdateListener?.onStatusUpdated(INCORRECT_FILE_TYPE(file.extension), Status.ERROR)
+            onStatusUpdateListener.onStatusUpdated(INCORRECT_FILE_TYPE(file.extension), Status.ERROR)
             return
         }
+
+        //todo: сейв в корутину
         val saveResult = extension.fileHelper.writeTable(
             tableViewModel.getDataAsList(),
             tableViewModel.tableDataController.getEvaluatedCells(),
             file.path
         )
 
-        if (saveResult == null) {
+        val (result, status) = if (saveResult == null) {
             LastOpenFile.setPath(file.path)
-            onStatusUpdateListener?.onStatusUpdated(SAVED_MESSAGE, Status.INFO)
+            SAVED_MESSAGE to Status.INFO
         } else {
-            onStatusUpdateListener?.onStatusUpdated(saveResult, Status.ERROR)
+            saveResult to Status.ERROR
         }
+
+        onStatusUpdateListener.onStatusUpdated(result, status)
     }
 }
 

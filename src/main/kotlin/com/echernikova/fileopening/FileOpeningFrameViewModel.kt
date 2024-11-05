@@ -3,8 +3,6 @@ package com.echernikova.fileopening
 import com.echernikova.editor.EditorFrame
 import com.echernikova.editor.EditorViewModel
 import com.echernikova.file.SupportedExtensions
-import org.koin.core.parameter.parametersOf
-import org.koin.java.KoinJavaComponent.getKoin
 import java.io.File
 
 
@@ -16,7 +14,7 @@ class FileOpeningFrameViewModel {
         return if (file.exists()) {
             FileOpeningStatus.FILE_EXISTS
         } else {
-            openEmptyTable(file)
+            openTable(file)
             FileOpeningStatus.SUCCESS
         }
     }
@@ -27,30 +25,17 @@ class FileOpeningFrameViewModel {
     }
 
     private fun openExistingFile(file: File): FileOpeningStatus {
-        return if (file.exists()) {
-            when {
-                !file.canRead() -> FileOpeningStatus.CANNOT_READ
-                SupportedExtensions.fromFile(file)?.fileHelper?.readTable(file.path) == null -> FileOpeningStatus.ERROR_ON_TABLE_READING
-                else -> {
-                    openExistingTable(file)
-                    FileOpeningStatus.SUCCESS
-                }
-            }
-        } else {
-            FileOpeningStatus.FILE_NOT_FOUND
-        }
+        if (!file.exists()) return FileOpeningStatus.FILE_NOT_FOUND
+        if (!file.canRead()) return FileOpeningStatus.CANNOT_READ
+
+        SupportedExtensions.fromFile(file)?.fileHelper?.readTable(file.path)?.let { openTable(file, it) }
+            ?: return FileOpeningStatus.ERROR_ON_TABLE_READING
+
+        return FileOpeningStatus.SUCCESS
     }
 
-    private fun openEmptyTable(file: File) {
-        val editorViewModel: EditorViewModel = getKoin().get { parametersOf(file, null) }
-
-        EditorFrame(editorViewModel).isVisible = true
-    }
-
-    private fun openExistingTable(file: File) {
-        val fileHelper = SupportedExtensions.fromFile(file)?.fileHelper!!
-        val data = fileHelper.readTable(file.path)!!.toTypedArray()
-        val editorViewModel: EditorViewModel = getKoin().get { parametersOf(file, data) }
+    private fun openTable(file: File, data: List<Array<Any?>>? = null) {
+        val editorViewModel = EditorViewModel(file, data?.toTypedArray())
         EditorFrame(editorViewModel).isVisible = true
     }
 

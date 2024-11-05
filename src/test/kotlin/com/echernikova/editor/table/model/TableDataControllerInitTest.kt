@@ -1,16 +1,43 @@
 package com.echernikova.editor.table.model
 
 import com.echernikova.evaluator.core.Evaluator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import org.koin.core.context.GlobalContext.startKoin
+import org.koin.core.context.GlobalContext.stopKoin
+import org.koin.dsl.module
 import org.mockito.Mockito.times
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import java.util.Vector
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 class TableDataControllerInitTest {
     private val evaluator = spy(Evaluator(emptyMap()))
-    private val underTest = TableDataController(evaluator = evaluator)
+    private val dispatcher = StandardTestDispatcher()
+    private val underTest = TableDataController(CoroutineScope(dispatcher))
+
+    @BeforeTest
+    fun startKoinInjection() {
+        startKoin {
+            modules(
+                module {
+                    single { evaluator }
+                }
+            )
+        }
+    }
+
+    @AfterTest
+    fun stopKoinInjection() {
+        stopKoin()
+    }
 
     @Test
     fun `TableData correctly init values`() {
@@ -25,8 +52,10 @@ class TableDataControllerInitTest {
     }
 
     @Test
-    fun `TableData updates value in table and tries to update dependent cell`() {
+    fun `TableData updates value in table and tries to update dependent cell`() = runTest(dispatcher) {
         initData()
+        advanceUntilIdle()
+
         verify(evaluator).evaluate("=${'A' + 1}1", underTest)
 
         val updatingCell = CellPointer(0, 2)
@@ -42,8 +71,10 @@ class TableDataControllerInitTest {
     }
 
     @Test
-    fun `TableData evaluates values only ones on init`() {
+    fun `TableData evaluates values only ones on init`() = runTest(dispatcher) {
         initData()
+        advanceUntilIdle()
+
         verify(evaluator, times(1)).evaluate("=${'A' + 1}1", underTest)
         verify(evaluator, times(1)).evaluate("=${'A' + 2}1", underTest)
         verify(evaluator, times(1)).evaluate("=${'A' + 3}1", underTest)

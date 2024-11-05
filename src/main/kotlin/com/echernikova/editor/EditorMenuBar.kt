@@ -6,6 +6,7 @@ import javax.swing.JMenuItem
 
 class EditorMenuBar(
     editorViewModel: EditorViewModel,
+    private val onStatusUpdateListener: StatusUpdateListener,
 ): JMenuBar() {
 
     init {
@@ -14,7 +15,7 @@ class EditorMenuBar(
 
         val saveMenuItem = JMenuItem("Save")
         saveMenuItem.addActionListener {
-            editorViewModel.onSaveClicked()
+            editorViewModel.onSaveClicked(onStatusUpdateListener)
         }
         fileMenu.add(saveMenuItem)
     }

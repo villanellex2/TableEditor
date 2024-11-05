@@ -1,7 +1,6 @@
 package com.echernikova.file
 
 import com.echernikova.editor.table.model.CellPointer
-import com.echernikova.editor.table.model.TableCell
 import com.echernikova.evaluator.core.ErrorEvaluationResult
 import com.echernikova.evaluator.core.EvaluationResult
 import org.apache.poi.ss.usermodel.*
@@ -31,7 +30,7 @@ class XSSFileHelper : FileHelper {
                             val cell = excelRow.createCell(column - 1)
 
                             val pointer = CellPointer(row, column)
-                            val result = mapEvaluated.get(pointer)
+                            val result = mapEvaluated[pointer]
 
                             if (result is ErrorEvaluationResult) {
                                 workbook.close()

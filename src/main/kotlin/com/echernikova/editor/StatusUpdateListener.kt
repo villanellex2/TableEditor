@@ -6,6 +6,8 @@ import kotlinx.coroutines.launch
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 
+private const val NOTIFICATION_DELETE_DELAY = 8000L
+
 class StatusUpdateListener(
     private val callback: (String, Status) -> Unit,
     private val coroutineScope: CoroutineScope,
@@ -18,7 +20,7 @@ class StatusUpdateListener(
 
         callback.invoke(status, type)
         coroutineScope.launch {
-            delay(4000)
+            delay(NOTIFICATION_DELETE_DELAY)
 
             if (lastUpdated == timestamp) {
                 SwingUtilities.invokeLater {
