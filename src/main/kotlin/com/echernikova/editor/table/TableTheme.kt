@@ -41,7 +41,7 @@ class LightTableTheme: TableTheme {
     override val normalCellFontColor = Color.BLACK
 
     override val markersCellFont = Font(Font.MONOSPACED, Font.PLAIN, 13)
-    override val markersCellFontColor = Color(0x242E47)
+    override val markersCellFontColor = Color(0x373C50)
 
     override val errorCellFont = Font(Font.MONOSPACED, Font.PLAIN, 14)
     override val errorCellFontColor = Color(0xff0000)
