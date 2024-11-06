@@ -94,18 +94,19 @@ open class EvaluatingTableModel(
     }
 
     private fun initializeDataVector(initialData: Array<Array<String?>>?) {
+        val createdCells = mutableListOf<TableCell>()
         initialData?.forEachIndexed { row, array ->
             array.forEachIndexed { column, value ->
                 val cellPointer = CellPointer(row, column)
-                dataVector[row][column] = createTableCell(cellPointer, value)
+                dataVector[row][column] = createTableCell(cellPointer, value).also {
+                    createdCells.add(it)
+                }
             }
         }
 
         scope.launch {
             synchronized(lock) {
-                dataVector.toList().forEach { row ->
-                    row.toList().forEach { (it as? TableCell)?.getEvaluationResult() }
-                }
+                createdCells.forEach { it.getEvaluationResult() }
             }
         }
     }
@@ -127,8 +128,8 @@ open class EvaluatingTableModel(
                 dataVector[pointer.row][pointer.column] = null
             } else {
                 cell.rawValue = newValue
-                evaluateCellDependencies(cell)
             }
+            evaluateCellDependencies(cell)
         }
     }
 
