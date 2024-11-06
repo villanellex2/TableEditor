@@ -32,7 +32,7 @@ This package is responsible for evaluating "functions" inside cells, including p
 ##### Supported Features
 
 - **Data Types**: `Int`, `Double`, `String`, `Boolean`.
-- **Binary Operators**: `||` (or), `&&` (and), `+`, `-`, `*`, `/`, `^` (power), `>`, `>=`, `<`, `<=`, `%`.
+- **Binary Operators**: `||`, `&&`, `+`, `-`, `*`, `/`, `^`, `>`, `>=`, `<`, `<=`, `%`.
 - **Unary Operators**: `+`, `-`.
 - **Functions**:
     - **SUM**: `SUM(..varargs: numbers)`.
