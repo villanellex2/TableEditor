@@ -72,14 +72,14 @@ class EditorFrame(
     }
 
     private fun JTable.configureColumns() {
-        val zeroColumn = columnModel.getColumn(0)
-
-        zeroColumn.minWidth = DEFAULT_CELL_MIN_WIDTH
-        zeroColumn.preferredWidth = MINI_CELL_WIDTH
-        zeroColumn.maxWidth = MINI_CELL_WIDTH + 20
-
         frameViewModel.tableModel.initColumnIdentifiers()
         tableHeader.defaultRenderer = HeaderRenderer()
+
+        columnModel.getColumn(0)?.apply {
+            minWidth = DEFAULT_CELL_MIN_WIDTH
+            preferredWidth = MINI_CELL_WIDTH
+            maxWidth = MINI_CELL_WIDTH + 20
+        }
 
         for (i in 1 until table.columnCount) {
             val column = columnModel.getColumn(i)

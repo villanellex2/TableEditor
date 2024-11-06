@@ -25,7 +25,7 @@ class HeaderRenderer : DefaultTableCellRenderer() {
     ): Component {
         val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-        background = if (table?.selectedColumn == column) {
+        background = if (column != 0 && table?.selectedColumn == column) {
             TableTheme.currentTheme.tableEditorBackgroundColor
         } else {
             TableTheme.currentTheme.secondaryBackground
