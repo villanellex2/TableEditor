@@ -4,6 +4,7 @@ import com.echernikova.evaluator.core.Evaluator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
+import javax.swing.SwingUtilities
 import javax.swing.table.DefaultTableModel
 
 private const val DEFAULT_PAGE_SIZE = 100
@@ -136,7 +137,6 @@ open class EvaluatingTableModel(
     private fun createTableCell(pointer: CellPointer, rawValue: String?) =
         TableCell(rawValue, pointer, this, evaluator) { cell ->
             dependenciesGraph.updateDependencies(cell)
-            fireTableCellUpdated(cell.pointer.row, cell.pointer.column)
         }
 
     private fun evaluateCellDependencies(cell: TableCell) {
@@ -155,8 +155,10 @@ open class EvaluatingTableModel(
                 }
             }
 
-            evaluationOrder.forEach { fireTableCellUpdated(it.row, it.column) }
-            cycleCells.forEach { fireTableCellUpdated(it.key.row, it.key.column) }
+            SwingUtilities.invokeLater {
+                evaluationOrder.forEach { fireTableCellUpdated(it.row, it.column) }
+                cycleCells.forEach { fireTableCellUpdated(it.key.row, it.key.column) }
+            }
         }
     }
 

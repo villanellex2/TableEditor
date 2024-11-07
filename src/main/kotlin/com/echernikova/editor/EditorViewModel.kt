@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.io.File
+import javax.swing.SwingUtilities
 
 private const val SAVING_IN_PROCESS = "Saving..."
 private const val SAVED_MESSAGE = "Successfully saved."
@@ -44,7 +45,9 @@ class EditorViewModel(
                 saveResult to Status.ERROR
             }
 
-            onStatusUpdateListener.onStatusUpdated(result, status)
+            SwingUtilities.invokeLater {
+                onStatusUpdateListener.onStatusUpdated(result, status)
+            }
         }
     }
 }
