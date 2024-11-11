@@ -31,7 +31,7 @@ This package is responsible for evaluating "functions" inside cells, including p
 
 ##### Supported Features
 
-- **Data Types**: `Int`, `Double`, `String`, `Boolean`.
+- **Data Types**: `Int`, `Double`, `String`, `Boolean` (true, false), `Cell links` (A1, F12), `Cell ranges` (A1:F12).
 - **Binary Operators**: `||`, `&&`, `+`, `-`, `*`, `/`, `^`, `>`, `>=`, `<`, `<=`, `%`.
 - **Unary Operators**: `+`, `-`.
 - **Functions**:
